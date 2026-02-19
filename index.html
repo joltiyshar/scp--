@@ -408,7 +408,7 @@ header{height:56px;background:var(--bg2);border-bottom:2px solid var(--border);d
 // ═══════════════════════════════════════════
 // КОНФИГ ОБЛАКА — заполни один раз
 // ═══════════════════════════════════════════
-const JSONBIN_KEY = localStorage.getItem('scp_jbkey') || '';
+const JSONBIN_KEY = '$2a$10$8xQx7Tq3cW4OCo58TZMbI.bWlY3eHmnC7A0bjouawrj8W/guIlpBq';
 const ADMIN_PASS = 'root';
 
 marked.setOptions({ breaks: true, gfm: true });
@@ -419,7 +419,7 @@ let activeId = null;
 let passBuffer = '';
 let pendingImg = null;
 let scpBase = 7000 + Math.floor(Math.random() * 2000);
-let cloudBinId = localStorage.getItem('scp_bin_id') || '';
+let cloudBinId = 
 
 window.addEventListener('load', () => {
   buildKeypad();
