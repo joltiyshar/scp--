@@ -236,7 +236,7 @@ header{height:56px;background:var(--bg2);border-bottom:2px solid var(--border);d
   <div class="boot-line ok">[OK] ПРОВЕРКА ЦЕЛОСТНОСТИ БАЗЫ ДАННЫХ</div>
   <div class="boot-line warn">[!!] ОБНАРУЖЕНЫ АНОМАЛЬНЫЕ ОБЪЕКТЫ: СВЕРКА...</div>
   <div class="boot-line ok">[OK] УРОВЕНЬ ДОСТУПА: ТОЛЬКО ЧТЕНИЕ</div>
-  <div class="boot-line ok">[OK] ТЕПЕРЬ ТЫ ШЛЮХА</div>
+  <div class="boot-line ok">[OK] СОЕДИНЕНИЕ С СЕРВЕРОМ О5</div>
   <div class="boot-line" style="margin-top:16px;color:#2a2a24;font-size:11px;">ДОСТУП РАЗРЕШЁН <span class="blink">█</span></div>
 </div>
 
@@ -257,6 +257,14 @@ header{height:56px;background:var(--bg2);border-bottom:2px solid var(--border);d
     <span style="color:var(--border2);">CLEARANCE REQUIRED /// UNAUTHORIZED ACCESS PROHIBITED</span>
   </div>
   <div class="header-right">
+    <div class="access-badge ro" id="syncBadge" style="cursor:pointer;" onclick="openCloudSetup()" title="Настройки облачной синхронизации">● ЛОКАЛЬНО</div>
+    <button class="hbtn" onclick="openCloudSetup()" title="Настроить облачный сервер">☁ ОБЛАКО</button>
+    <button class="hbtn" onclick="exportDB()" title="Скачать базу как .json файл">⬇ ЭКСПОРТ</button>
+    <label class="hbtn" title="Загрузить базу из .json файла" style="cursor:pointer;">
+      ⬆ ИМПОРТ
+      <input type="file" id="importFile" accept=".json" onchange="importDB(event)" style="display:none;">
+    </label>
+    <div style="width:1px;height:20px;background:var(--border2);margin:0 4px;"></div>
     <div class="access-badge ro" id="accessBadge">● ТОЛЬКО ЧТЕНИЕ</div>
     <button class="hbtn" onclick="openAuthModal()" id="authBtn">⬡ ДОСТУП ПЕРСОНАЛА</button>
     <button class="hbtn danger" onclick="logout()" id="logoutBtn" style="display:none;">⬡ ВЫХОД</button>
@@ -282,7 +290,7 @@ header{height:56px;background:var(--bg2);border-bottom:2px solid var(--border);d
     <div class="empty-state">
       <div class="sym">☣</div>
       <h2>ОБЪЕКТ НЕ ВЫБРАН</h2>
-      <p>ВЫБЕРИТЕ ОБЪЕКТ ИЗ СПИСКА СЛЕВА<br><br>ДЛЯ СОЗДАНИЯ ОБЪЕКТОВ ТРЕБУЕТСЯ ПОЙТИ НАХУЙ </p>
+      <p>ВЫБЕРИТЕ ОБЪЕКТ ИЗ СПИСКА СЛЕВА<br><br>ДЛЯ СОЗДАНИЯ ОБЪЕКТОВ ТРЕБУЕТСЯ АВТОРИЗАЦИЯ УРОВНЯ О5</p>
     </div>
   </div>
 </div>
@@ -359,12 +367,48 @@ header{height:56px;background:var(--bg2);border-bottom:2px solid var(--border);d
   </div>
 </div>
 
+<!-- CLOUD SETUP MODAL -->
+<div class="overlay" id="cloudOverlay">
+  <div class="modal" style="width:500px;">
+    <div class="mhd">
+      <div class="mtitle">☁ НАСТРОЙКА ОБЛАЧНОГО СЕРВЕРА</div>
+      <button class="mclose" onclick="closeModal('cloudOverlay')">✕</button>
+    </div>
+    <div class="mbody">
+      <div style="font-family:var(--mono);font-size:11px;color:var(--text-dim);letter-spacing:1px;line-height:1.9;margin-bottom:20px;border-left:3px solid var(--red2);padding-left:12px;">
+        Статьи хранятся на сервере <b style="color:var(--text);">jsonbin.io</b> — бесплатно, без лимитов на чтение.<br>
+        Твой друг открывает тот же HTML файл — и видит все статьи.<br><br>
+        <b style="color:var(--amber);">Как настроить:</b><br>
+        1. Зайди на <a href="https://jsonbin.io" target="_blank" style="color:var(--amber);">jsonbin.io</a> → бесплатная регистрация<br>
+        2. Профиль → API Keys → скопируй <b style="color:var(--text);">Master Key</b><br>
+        3. Вставь ключ ниже и нажми «ПОДКЛЮЧИТЬ»<br>
+        4. ID корзины создастся автоматически при первом сохранении
+      </div>
+      <div class="frow">
+        <label class="flabel">API КЛЮЧ (Master Key с jsonbin.io)</label>
+        <input type="text" class="finput" id="cloudKeyInput" placeholder="$2a$10$...">
+      </div>
+      <div class="frow">
+        <label class="flabel">ID КОРЗИНЫ (заполнится автоматически)</label>
+        <input type="text" class="finput" id="cloudBinInput" placeholder="64abc123... (необязательно, для существующей корзины)">
+      </div>
+      <div id="cloudStatusInfo" style="font-family:var(--mono);font-size:10px;color:var(--text-dim);letter-spacing:1px;margin-top:4px;"></div>
+    </div>
+    <div class="mfoot">
+      <button class="mbtn c" onclick="clearCloudConfig()">ОТКЛЮЧИТЬ ОБЛАКО</button>
+      <button class="mbtn c" onclick="closeModal('cloudOverlay')">ОТМЕНА</button>
+      <button class="mbtn ok" onclick="saveCloudConfig()">ПОДКЛЮЧИТЬ ☁</button>
+    </div>
+  </div>
+</div>
+
 <div class="toast" id="toast"></div>
 
 <script>
 // ═══════════════════════════════════════════
-// INIT
+// КОНФИГ ОБЛАКА — заполни один раз
 // ═══════════════════════════════════════════
+const JSONBIN_KEY = localStorage.getItem('scp_jbkey') || '';
 const ADMIN_PASS = 'root';
 
 marked.setOptions({ breaks: true, gfm: true });
@@ -375,11 +419,18 @@ let activeId = null;
 let passBuffer = '';
 let pendingImg = null;
 let scpBase = 7000 + Math.floor(Math.random() * 2000);
+let cloudBinId = localStorage.getItem('scp_bin_id') || '';
 
 window.addEventListener('load', () => {
   buildKeypad();
-  renderList();
-  if (entities.length) selectEntity(entities[0].id);
+  if (JSONBIN_KEY && cloudBinId) {
+    cloudLoad();
+    updateSyncBadge('syncing');
+  } else {
+    renderList();
+    if (entities.length) selectEntity(entities[0].id);
+    updateSyncBadge('local');
+  }
   setTimeout(() => { document.getElementById('bootScreen').style.display = 'none'; }, 3100);
 });
 
@@ -786,7 +837,7 @@ function insertImageMd() {
 }
 
 // ═══════════════════════════════════════════
-// SAVE
+// SAVE & CLOUD SYNC
 // ═══════════════════════════════════════════
 function saveCurrent() {
   const entity = getEntity(activeId);
@@ -800,7 +851,156 @@ function saveCurrent() {
 function saveAll() {
   saveCurrent();
   localStorage.setItem('scp_db', JSON.stringify(entities));
-  toast('ДАННЫЕ СОХРАНЕНЫ В БАЗУ');
+  if (JSONBIN_KEY && cloudBinId) {
+    cloudSave();
+  } else {
+    toast('ДАННЫЕ СОХРАНЕНЫ ЛОКАЛЬНО');
+  }
+}
+
+// ─── CLOUD: загрузить данные ───
+async function cloudLoad() {
+  updateSyncBadge('syncing');
+  try {
+    const r = await fetch(`https://api.jsonbin.io/v3/b/${cloudBinId}/latest`, {
+      headers: { 'X-Master-Key': JSONBIN_KEY, 'X-Bin-Meta': 'false' }
+    });
+    if (!r.ok) throw new Error(r.status);
+    const data = await r.json();
+    if (Array.isArray(data)) {
+      entities = data;
+      localStorage.setItem('scp_db', JSON.stringify(entities));
+    }
+    updateSyncBadge('cloud');
+  } catch(e) {
+    updateSyncBadge('error');
+    toast('ОШИБКА ЗАГРУЗКИ С СЕРВЕРА: ' + e.message);
+  }
+  renderList();
+  if (entities.length) selectEntity(entities[0].id);
+}
+
+// ─── CLOUD: сохранить данные ───
+async function cloudSave() {
+  updateSyncBadge('syncing');
+  try {
+    let url, method;
+    if (cloudBinId) {
+      url = `https://api.jsonbin.io/v3/b/${cloudBinId}`;
+      method = 'PUT';
+    } else {
+      url = 'https://api.jsonbin.io/v3/b';
+      method = 'POST';
+    }
+    const r = await fetch(url, {
+      method,
+      headers: {
+        'Content-Type': 'application/json',
+        'X-Master-Key': JSONBIN_KEY,
+        'X-Bin-Name': 'scp-foundation-db',
+        'X-Bin-Private': 'false'
+      },
+      body: JSON.stringify(entities)
+    });
+    if (!r.ok) throw new Error(r.status);
+    const data = await r.json();
+    if (!cloudBinId) {
+      cloudBinId = data.metadata.id;
+      localStorage.setItem('scp_bin_id', cloudBinId);
+      toast('☁ КОРЗИНА СОЗДАНА! ID: ' + cloudBinId);
+    } else {
+      toast('☁ СИНХРОНИЗИРОВАНО С СЕРВЕРОМ');
+    }
+    localStorage.setItem('scp_db', JSON.stringify(entities));
+    updateSyncBadge('cloud');
+  } catch(e) {
+    updateSyncBadge('error');
+    toast('ОШИБКА СОХРАНЕНИЯ НА СЕРВЕР: ' + e.message);
+  }
+}
+
+// ─── CLOUD: первичная настройка ───
+function openCloudSetup() {
+  openOverlay('cloudOverlay');
+  document.getElementById('cloudKeyInput').value = localStorage.getItem('scp_jbkey') || '';
+  document.getElementById('cloudBinInput').value = localStorage.getItem('scp_bin_id') || '';
+  const binId = localStorage.getItem('scp_bin_id');
+  const key = localStorage.getItem('scp_jbkey');
+  const info = document.getElementById('cloudStatusInfo');
+  if (key && binId) {
+    info.innerHTML = `<span style="color:var(--green);">● ПОДКЛЮЧЕНО</span> — ID корзины: <span style="color:var(--amber);">${binId}</span><br>Ссылка для чтения: <a href="https://api.jsonbin.io/v3/b/${binId}/latest" target="_blank" style="color:var(--amber);word-break:break-all;">jsonbin.io/v3/b/${binId}</a>`;
+  } else if (key) {
+    info.innerHTML = '<span style="color:var(--amber);">⚠ Ключ есть, но корзина ещё не создана — сохрани статью.</span>';
+  } else {
+    info.innerHTML = '<span style="color:var(--text-dim);">⬡ Облако не настроено — статьи хранятся только локально.</span>';
+  }
+}
+
+function saveCloudConfig() {
+  const key = document.getElementById('cloudKeyInput').value.trim();
+  const bin = document.getElementById('cloudBinInput').value.trim();
+  if (!key) { toast('ВВЕДИТЕ API КЛЮЧ'); return; }
+  localStorage.setItem('scp_jbkey', key);
+  if (bin) { localStorage.setItem('scp_bin_id', bin); cloudBinId = bin; }
+  closeModal('cloudOverlay');
+  location.reload(); // перезагружаем с новым ключом
+}
+
+function clearCloudConfig() {
+  if (!confirm('Отвязать облако? Данные останутся локально.')) return;
+  localStorage.removeItem('scp_jbkey');
+  localStorage.removeItem('scp_bin_id');
+  toast('ОБЛАКО ОТКЛЮЧЕНО');
+  closeModal('cloudOverlay');
+  location.reload();
+}
+
+// ─── экспорт в файл ───
+function exportDB() {
+  saveCurrent();
+  const blob = new Blob([JSON.stringify(entities, null, 2)], { type: 'application/json' });
+  const a = document.createElement('a');
+  a.href = URL.createObjectURL(blob);
+  a.download = 'scp-database.json';
+  a.click();
+  toast('БАЗА ЭКСПОРТИРОВАНА В ФАЙЛ');
+}
+
+// ─── импорт из файла ───
+function importDB(ev) {
+  const file = ev.target.files[0];
+  if (!file) return;
+  const reader = new FileReader();
+  reader.onload = e => {
+    try {
+      const data = JSON.parse(e.target.result);
+      if (!Array.isArray(data)) throw new Error('Неверный формат');
+      if (!confirm(`Импортировать ${data.length} объект(ов)? Текущие данные будут заменены.`)) return;
+      entities = data;
+      localStorage.setItem('scp_db', JSON.stringify(entities));
+      renderList();
+      if (entities.length) selectEntity(entities[0].id); else activeId = null;
+      toast('БАЗА ИМПОРТИРОВАНА: ' + data.length + ' объектов');
+    } catch(err) { toast('ОШИБКА ИМПОРТА: ' + err.message); }
+  };
+  reader.readAsText(file);
+  ev.target.value = '';
+}
+
+// ─── значок синхронизации ───
+function updateSyncBadge(status) {
+  const b = document.getElementById('syncBadge');
+  if (!b) return;
+  const cfg = {
+    local:   { text:'● ЛОКАЛЬНО',    color:'var(--text-dim)',  border:'var(--border2)' },
+    cloud:   { text:'☁ ОБЛАКО',      color:'#4488cc',          border:'#224466' },
+    syncing: { text:'↻ СИНХР...',    color:'var(--amber)',      border:'var(--amber-dim)' },
+    error:   { text:'✕ ОШИБКА SYNC', color:'var(--red)',        border:'var(--red2)' },
+  };
+  const s = cfg[status] || cfg.local;
+  b.textContent = s.text;
+  b.style.color = s.color;
+  b.style.borderColor = s.border;
 }
 
 setInterval(() => { if (activeId && isAdmin) saveAll(); }, 30000);
