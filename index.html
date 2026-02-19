@@ -5,1060 +5,239 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>SCP FOUNDATION — ОБЪЕКТНАЯ БАЗА ДАННЫХ</title>
 <link href="https://fonts.googleapis.com/css2?family=Special+Elite&family=Share+Tech+Mono&family=Courier+Prime:ital,wght@0,400;0,700;1,400&display=swap" rel="stylesheet">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/marked/9.1.6/marked.min.js"></script>
 <style>
 :root {
-  --bg: #080808;
-  --bg2: #0d0d0b;
-  --surface: #111109;
-  --surface2: #181815;
-  --border: #2a2a24;
-  --border2: #3d3d32;
-  --text: #c8c4a8;
-  --text-dim: #6b6858;
-  --text-bright: #e0dcc4;
-  --red: #cc1111;
-  --red2: #991111;
-  --red-dim: #4a0808;
-  --amber: #c4920a;
-  --amber-dim: #6b4f05;
-  --green: #4a7a30;
-  --green-dim: #1e3010;
-  --stamp-red: #b80000;
-  --stamp-red2: #8a0000;
-  --mono: 'Share Tech Mono', 'Courier New', monospace;
-  --serif: 'Courier Prime', 'Courier New', monospace;
-  --title: 'Special Elite', 'Courier New', monospace;
+  --bg:#080808;--bg2:#0d0d0b;--surface:#111109;--surface2:#181815;
+  --border:#2a2a24;--border2:#3d3d32;
+  --text:#c8c4a8;--text-dim:#6b6858;--text-bright:#e0dcc4;
+  --red:#cc1111;--red2:#991111;--red-dim:#4a0808;
+  --amber:#c4920a;--amber-dim:#6b4f05;
+  --green:#4a7a30;--green-dim:#1e3010;
+  --mono:'Share Tech Mono','Courier New',monospace;
+  --serif:'Courier Prime','Courier New',monospace;
+  --title:'Special Elite','Courier New',monospace;
 }
+*{box-sizing:border-box;margin:0;padding:0;}
+html,body{height:100%;}
+body{background:var(--bg);color:var(--text);font-family:var(--serif);font-size:15px;overflow:hidden;cursor:crosshair;}
 
-* { box-sizing: border-box; margin: 0; padding: 0; }
+/* scanlines */
+body::after{content:'';position:fixed;inset:0;background:repeating-linear-gradient(0deg,transparent,transparent 2px,rgba(0,0,0,.08) 2px,rgba(0,0,0,.08) 4px);pointer-events:none;z-index:9998;}
+/* noise */
+body::before{content:'';position:fixed;inset:-50%;width:200%;height:200%;background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='200' height='200'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='200' height='200' filter='url(%23n)' opacity='0.03'/%3E%3C/svg%3E");animation:noise .4s steps(1) infinite;pointer-events:none;z-index:9997;opacity:.4;}
+@keyframes noise{0%,100%{transform:translate(0,0)}10%{transform:translate(-2px,1px)}20%{transform:translate(2px,-1px)}30%{transform:translate(-1px,2px)}40%{transform:translate(1px,-2px)}50%{transform:translate(-2px,-1px)}60%{transform:translate(2px,2px)}70%{transform:translate(-1px,-1px)}80%{transform:translate(1px,1px)}90%{transform:translate(0,-2px)}}
 
-html, body { height: 100%; }
-
-body {
-  background: var(--bg);
-  color: var(--text);
-  font-family: var(--serif);
-  font-size: 15px;
-  overflow: hidden;
-  cursor: crosshair;
-}
-
-/* SCANLINES */
-body::after {
-  content: '';
-  position: fixed;
-  inset: 0;
-  background: repeating-linear-gradient(
-    0deg,
-    transparent,
-    transparent 2px,
-    rgba(0,0,0,0.08) 2px,
-    rgba(0,0,0,0.08) 4px
-  );
-  pointer-events: none;
-  z-index: 9998;
-}
-
-/* NOISE */
-body::before {
-  content: '';
-  position: fixed;
-  inset: -50%;
-  width: 200%;
-  height: 200%;
-  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='200' height='200'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='200' height='200' filter='url(%23n)' opacity='0.03'/%3E%3C/svg%3E");
-  animation: noise 0.4s steps(1) infinite;
-  pointer-events: none;
-  z-index: 9997;
-  opacity: 0.4;
-}
-
-@keyframes noise {
-  0%,100% { transform: translate(0,0); }
-  10% { transform: translate(-2px,1px); }
-  20% { transform: translate(2px,-1px); }
-  30% { transform: translate(-1px,2px); }
-  40% { transform: translate(1px,-2px); }
-  50% { transform: translate(-2px,-1px); }
-  60% { transform: translate(2px,2px); }
-  70% { transform: translate(-1px,-1px); }
-  80% { transform: translate(1px,1px); }
-  90% { transform: translate(0px,-2px); }
-}
-
-/* BOOT SCREEN */
-#
-Screen {
-  position: fixed;
-  inset: 0;
-  background: #000;
-  z-index: 9000;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  font-family: var(--mono);
-  font-size: 13px;
-  color: #cc1111;
-  animation: bootFade 0.4s ease 2.8s forwards;
-}
-
-@keyframes bootFade { to { opacity: 0; pointer-events: none; } }
-
-.boot-logo {
-  font-size: 48px;
-  margin-bottom: 20px;
-  letter-spacing: 6px;
-  animation: flicker 0.1s step-end 5;
-}
-
-@keyframes flicker {
-  0%,100% { opacity:1; } 50% { opacity:0; }
-}
-
-.boot-line { color: #666; margin: 2px 0; }
-.boot-line.ok { color: #4a7a30; }
-.boot-line.warn { color: var(--amber); }
-.boot-line.err { color: var(--red); }
+/* BOOT */
+#bootScreen{position:fixed;inset:0;background:#000;z-index:9000;display:flex;flex-direction:column;align-items:center;justify-content:center;font-family:var(--mono);font-size:13px;color:#cc1111;}
+.boot-logo{font-size:52px;margin-bottom:20px;letter-spacing:6px;}
+.boot-line{color:#555;margin:2px 0;}.boot-line.ok{color:#4a7a30;}.boot-line.warn{color:var(--amber);}
+.blink{animation:blink 1s step-end infinite;}
+@keyframes blink{50%{opacity:0;}}
 
 /* HEADER */
-header {
-  height: 56px;
-  background: var(--bg2);
-  border-bottom: 2px solid var(--border);
-  display: flex;
-  align-items: center;
-  padding: 0 20px;
-  gap: 16px;
-  position: relative;
-  z-index: 100;
-  flex-shrink: 0;
-}
-
-.scp-logo {
-  font-family: var(--title);
-  font-size: 20px;
-  color: var(--red);
-  letter-spacing: 3px;
-  display: flex;
-  align-items: center;
-  gap: 10px;
-  white-space: nowrap;
-}
-
-.scp-logo svg { flex-shrink: 0; }
-
-.header-mid {
-  flex: 1;
-  font-family: var(--mono);
-  font-size: 10px;
-  color: var(--text-dim);
-  letter-spacing: 1px;
-  line-height: 1.6;
-}
-
-.header-right {
-  display: flex;
-  align-items: center;
-  gap: 10px;
-}
-
-.access-badge {
-  font-family: var(--mono);
-  font-size: 10px;
-  padding: 4px 10px;
-  border: 1px solid;
-  letter-spacing: 2px;
-  text-transform: uppercase;
-}
-
-.access-badge.read-only { color: var(--text-dim); border-color: var(--border2); }
-.access-badge.admin { color: var(--amber); border-color: var(--amber-dim); animation: pulseAmber 2s ease infinite; }
-
-@keyframes pulseAmber {
-  0%,100% { box-shadow: 0 0 4px rgba(196,146,10,0.3); }
-  50% { box-shadow: 0 0 10px rgba(196,146,10,0.6); }
-}
-
-.blink { animation: blink 1s step-end infinite; }
-@keyframes blink { 50% { opacity: 0; } }
+header{height:56px;background:var(--bg2);border-bottom:2px solid var(--border);display:flex;align-items:center;padding:0 20px;gap:16px;z-index:100;flex-shrink:0;}
+.scp-logo{font-family:var(--title);font-size:20px;color:var(--red);letter-spacing:3px;display:flex;align-items:center;gap:10px;white-space:nowrap;}
+.header-mid{flex:1;font-family:var(--mono);font-size:10px;color:var(--text-dim);letter-spacing:1px;line-height:1.6;}
+.header-right{display:flex;align-items:center;gap:10px;}
+.access-badge{font-family:var(--mono);font-size:10px;padding:4px 10px;border:1px solid;letter-spacing:2px;}
+.access-badge.ro{color:var(--text-dim);border-color:var(--border2);}
+.access-badge.adm{color:var(--amber);border-color:var(--amber-dim);animation:pAmber 2s ease infinite;}
+@keyframes pAmber{0%,100%{box-shadow:0 0 4px rgba(196,146,10,.3)}50%{box-shadow:0 0 12px rgba(196,146,10,.7)}}
+.hbtn{display:inline-flex;align-items:center;gap:4px;padding:5px 10px;border:1px solid var(--border2);background:transparent;color:var(--text-dim);font-family:var(--mono);font-size:10px;cursor:pointer;letter-spacing:2px;text-transform:uppercase;transition:all .15s;}
+.hbtn:hover{border-color:var(--red2);color:var(--red);}
+.hbtn.danger{border-color:var(--red2);color:var(--red);}
+.hbtn.danger:hover{background:var(--red-dim);}
 
 /* LAYOUT */
-.app-layout {
-  display: flex;
-  height: calc(100vh - 56px);
-  overflow: hidden;
-}
+.app{display:flex;height:calc(100vh - 56px);overflow:hidden;}
 
 /* SIDEBAR */
-.sidebar {
-  width: 280px;
-  background: var(--surface);
-  border-right: 1px solid var(--border);
-  display: flex;
-  flex-direction: column;
-  flex-shrink: 0;
-  overflow: hidden;
-}
-
-.sidebar-header {
-  padding: 12px 16px;
-  border-bottom: 1px solid var(--border);
-  background: var(--bg2);
-}
-
-.sidebar-label {
-  font-family: var(--mono);
-  font-size: 9px;
-  color: var(--text-dim);
-  letter-spacing: 3px;
-  text-transform: uppercase;
-  margin-bottom: 8px;
-  display: flex;
-  align-items: center;
-  gap: 6px;
-}
-
-.sidebar-label::before { content: ''; display: block; width: 6px; height: 6px; background: var(--red); animation: pulseRed 1.5s ease infinite; }
-
-@keyframes pulseRed {
-  0%,100% { opacity: 1; box-shadow: 0 0 4px var(--red); }
-  50% { opacity: 0.3; }
-}
-
-.sidebar-search {
-  background: transparent;
-  border: 1px solid var(--border);
-  color: var(--text);
-  font-family: var(--mono);
-  font-size: 12px;
-  padding: 6px 10px;
-  width: 100%;
-  outline: none;
-  letter-spacing: 1px;
-}
-
-.sidebar-search:focus { border-color: var(--red2); }
-.sidebar-search::placeholder { color: var(--text-dim); }
-
-.entity-list {
-  flex: 1;
-  overflow-y: auto;
-  padding: 8px 0;
-}
-
-.entity-list::-webkit-scrollbar { width: 4px; }
-.entity-list::-webkit-scrollbar-track { background: var(--bg2); }
-.entity-list::-webkit-scrollbar-thumb { background: var(--border2); }
-
-.entity-item {
-  padding: 10px 16px;
-  cursor: pointer;
-  border-left: 3px solid transparent;
-  border-bottom: 1px solid rgba(42,42,36,0.5);
-  transition: all 0.15s;
-  position: relative;
-}
-
-.entity-item:hover { background: var(--surface2); border-left-color: var(--border2); }
-.entity-item.active { background: var(--surface2); border-left-color: var(--red); }
-
-.entity-number {
-  font-family: var(--mono);
-  font-size: 10px;
-  color: var(--text-dim);
-  margin-bottom: 3px;
-  letter-spacing: 1px;
-}
-
-.entity-name {
-  font-family: var(--title);
-  font-size: 14px;
-  color: var(--text-bright);
-  margin-bottom: 4px;
-}
-
-.threat-badge {
-  display: inline-block;
-  font-family: var(--mono);
-  font-size: 9px;
-  padding: 1px 6px;
-  letter-spacing: 2px;
-  font-weight: bold;
-}
-
-.threat-badge.SAFE { background: var(--green-dim); color: #6ab040; border: 1px solid var(--green); }
-.threat-badge.EUCLID { background: #4a3800; color: #c4920a; border: 1px solid var(--amber-dim); }
-.threat-badge.KETER { background: var(--red-dim); color: #ff4444; border: 1px solid var(--red2); animation: glowRed 2s ease infinite; }
-.threat-badge.THAUMIEL { background: #0a1a3a; color: #4488cc; border: 1px solid #224466; }
-.threat-badge.NEUTRALIZED { background: #1a1a1a; color: #666; border: 1px solid #333; text-decoration: line-through; }
-
-@keyframes glowRed {
-  0%,100% { box-shadow: 0 0 4px rgba(204,17,17,0.4); }
-  50% { box-shadow: 0 0 10px rgba(204,17,17,0.8); }
-}
-
-.entity-delete {
-  position: absolute;
-  right: 10px;
-  top: 50%;
-  transform: translateY(-50%);
-  background: none;
-  border: none;
-  color: var(--red2);
-  cursor: pointer;
-  font-family: var(--mono);
-  font-size: 13px;
-  opacity: 0;
-  transition: opacity 0.15s;
-  padding: 4px;
-}
-
-.entity-item:hover .entity-delete { opacity: 1; }
-
-.sidebar-footer {
-  padding: 12px 16px;
-  border-top: 1px solid var(--border);
-  background: var(--bg2);
-}
-
-.btn {
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  gap: 6px;
-  padding: 7px 14px;
-  border: 1px solid var(--border2);
-  background: transparent;
-  color: var(--text-dim);
-  font-family: var(--mono);
-  font-size: 11px;
-  cursor: pointer;
-  letter-spacing: 2px;
-  text-transform: uppercase;
-  transition: all 0.15s;
-  width: 100%;
-}
-
-.btn:hover { border-color: var(--red2); color: var(--red); }
-.btn-danger { border-color: var(--red2); color: var(--red); }
-.btn-danger:hover { background: var(--red-dim); box-shadow: 0 0 10px rgba(204,17,17,0.3); }
-.btn-amber { border-color: var(--amber-dim); color: var(--amber); }
-.btn-amber:hover { background: rgba(196,146,10,0.1); }
-.btn-sm { padding: 4px 8px; font-size: 10px; width: auto; }
-
-/* MAIN CONTENT */
-.main-content {
-  flex: 1;
-  display: flex;
-  flex-direction: column;
-  overflow: hidden;
-  background: var(--bg);
-}
-
-/* EMPTY STATE */
-.empty-state {
-  flex: 1;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  color: var(--text-dim);
-  font-family: var(--mono);
-  text-align: center;
-  padding: 40px;
-  gap: 12px;
-}
-
-.empty-state .scp-symbol {
-  font-size: 80px;
-  opacity: 0.08;
-  filter: blur(1px);
-  margin-bottom: 10px;
-}
-
-.empty-state h2 {
-  font-family: var(--title);
-  font-size: 20px;
-  color: var(--border2);
-  letter-spacing: 3px;
-}
-
-.empty-state p { font-size: 12px; letter-spacing: 1px; opacity: 0.6; max-width: 360px; line-height: 1.8; }
-
-/* DOCUMENT VIEW */
-.doc-container {
-  flex: 1;
-  overflow-y: auto;
-  padding: 32px 40px 100px;
-  max-width: 900px;
-  margin: 0 auto;
-  width: 100%;
-}
-
-.doc-container::-webkit-scrollbar { width: 6px; }
-.doc-container::-webkit-scrollbar-track { background: var(--bg2); }
-.doc-container::-webkit-scrollbar-thumb { background: var(--border); }
-
-/* DOCUMENT HEADER */
-.doc-header {
-  border: 1px solid var(--border);
-  margin-bottom: 0;
-  position: relative;
-  background: var(--surface);
-}
-
-.doc-header-top {
-  display: flex;
-  align-items: stretch;
-  border-bottom: 1px solid var(--border);
-}
-
-.doc-header-logo {
-  padding: 16px 20px;
-  border-right: 1px solid var(--border);
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  background: var(--bg2);
-}
-
-.doc-header-info {
-  padding: 12px 20px;
-  flex: 1;
-}
-
-.doc-item-number {
-  font-family: var(--title);
-  font-size: 28px;
-  color: var(--red);
-  letter-spacing: 2px;
-  margin-bottom: 4px;
-}
-
-.doc-name {
-  font-family: var(--title);
-  font-size: 22px;
-  color: var(--text-bright);
-  letter-spacing: 1px;
-}
-
-.doc-name-input {
-  font-family: var(--title) !important;
-  font-size: 22px !important;
-  color: var(--text-bright) !important;
-  background: transparent;
-  border: none !important;
-  border-bottom: 1px dashed var(--border) !important;
-  outline: none;
-  width: 100%;
-  padding: 0 !important;
-}
-
-.doc-stamps {
-  padding: 12px 16px;
-  display: flex;
-  gap: 12px;
-  align-items: center;
-  border-right: 1px solid var(--border);
-  flex-direction: column;
-  justify-content: center;
-}
-
-.stamp {
-  font-family: var(--title);
-  font-size: 11px;
-  padding: 3px 8px;
-  border: 2px solid;
-  letter-spacing: 2px;
-  transform: rotate(-6deg);
-  opacity: 0.85;
-  white-space: nowrap;
-}
-
-.stamp.classified { color: var(--stamp-red); border-color: var(--stamp-red); transform: rotate(3deg); }
-.stamp.restricted { color: var(--amber); border-color: var(--amber-dim); transform: rotate(-4deg); }
-
-.doc-meta-row {
-  display: grid;
-  grid-template-columns: repeat(4, 1fr);
-  border-top: 1px solid var(--border);
-}
-
-.doc-meta-cell {
-  padding: 8px 14px;
-  border-right: 1px solid var(--border);
-  font-family: var(--mono);
-}
-
-.doc-meta-cell:last-child { border-right: none; }
-
-.doc-meta-label {
-  font-size: 9px;
-  color: var(--text-dim);
-  letter-spacing: 2px;
-  text-transform: uppercase;
-  margin-bottom: 4px;
-}
-
-.doc-meta-value {
-  font-size: 12px;
-  color: var(--text-bright);
-}
-
-.doc-meta-value.editable {
-  background: transparent;
-  border: none;
-  border-bottom: 1px dashed var(--border);
-  color: var(--text-bright);
-  font-family: var(--mono);
-  font-size: 12px;
-  outline: none;
-  width: 100%;
-  cursor: text;
-}
-
-.threat-select {
-  background: transparent;
-  border: none;
-  border-bottom: 1px dashed var(--border);
-  color: var(--text-bright);
-  font-family: var(--mono);
-  font-size: 12px;
-  outline: none;
-  cursor: pointer;
-  width: 100%;
-}
-
-.threat-select option { background: var(--surface2); }
-
-/* WARNING BOX */
-.warning-box {
-  border: 1px solid var(--border);
-  border-left: 4px solid var(--red);
-  background: var(--red-dim);
-  padding: 10px 16px;
-  font-family: var(--mono);
-  font-size: 11px;
-  color: #ff6666;
-  letter-spacing: 1px;
-  line-height: 1.7;
-  margin: 16px 0;
-}
-
-/* BLOCKS */
-.blocks-area {
-  border: 1px solid var(--border);
-  border-top: none;
-  background: var(--surface);
-  padding: 24px;
-  min-height: 300px;
-  position: relative;
-}
-
-.block {
-  position: relative;
-  margin-bottom: 2px;
-}
-
-.block:hover .blk-controls { opacity: 1; }
-
-.blk-controls {
-  position: absolute;
-  right: -44px;
-  top: 50%;
-  transform: translateY(-50%);
-  display: flex;
-  flex-direction: column;
-  gap: 2px;
-  opacity: 0;
-  transition: opacity 0.15s;
-}
-
-.blk-ctrl {
-  width: 32px;
-  height: 24px;
-  border: 1px solid var(--border);
-  background: var(--bg2);
-  color: var(--text-dim);
-  cursor: pointer;
-  font-family: var(--mono);
-  font-size: 11px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  transition: all 0.1s;
-}
-
-.blk-ctrl:hover { border-color: var(--red2); color: var(--red); background: var(--red-dim); }
-
-/* Text blocks */
-.text-block {
-  outline: none;
-  min-height: 24px;
-  padding: 3px 0;
-  color: var(--text);
-  line-height: 1.9;
-  font-size: 14px;
-  font-family: var(--serif);
-  letter-spacing: 0.3px;
-  caret-color: var(--red);
-}
-
-.text-block:empty::before {
-  content: attr(data-ph);
-  color: var(--text-dim);
-  font-style: italic;
-  pointer-events: none;
-}
-
-.text-block.h1 {
-  font-family: var(--title);
-  font-size: 18px;
-  color: var(--text-bright);
-  letter-spacing: 3px;
-  text-transform: uppercase;
-  border-bottom: 1px solid var(--border);
-  padding-bottom: 8px;
-  margin: 12px 0 4px;
-}
-
-.text-block.h2 {
-  font-family: var(--mono);
-  font-size: 13px;
-  color: var(--red);
-  letter-spacing: 3px;
-  text-transform: uppercase;
-  margin: 10px 0 2px;
-}
-
-.text-block.quote {
-  border-left: 3px solid var(--border2);
-  padding-left: 16px;
-  color: var(--text-dim);
-  font-style: italic;
-  background: rgba(0,0,0,0.3);
-  padding: 8px 8px 8px 16px;
-}
-
-.text-block.redacted {
-  color: var(--bg);
-  background: var(--text-dim);
-  user-select: none;
-  letter-spacing: 2px;
-  padding: 2px 6px;
-  cursor: not-allowed;
-  font-size: 12px;
-}
-
-/* Image block */
-.image-block { margin: 16px 0; }
-
-.image-block img {
-  max-width: 100%;
-  border: 1px solid var(--border);
-  display: block;
-  filter: contrast(1.05) brightness(0.9);
-}
-
-.image-block .img-caption {
-  font-family: var(--mono);
-  font-size: 10px;
-  color: var(--text-dim);
-  letter-spacing: 1px;
-  margin-top: 6px;
-  padding: 4px 8px;
-  border-left: 2px solid var(--border);
-  outline: none;
-}
-
-.image-block .img-caption:empty::before { content: '[ПОДПИСЬ К МАТЕРИАЛУ — ВВЕДИТЕ ОПИСАНИЕ]'; opacity: 0.4; }
-
-.image-block .img-size-row {
-  display: flex;
-  gap: 4px;
-  margin-top: 6px;
-}
-
-.sz-btn {
-  font-family: var(--mono);
-  font-size: 10px;
-  padding: 2px 8px;
-  border: 1px solid var(--border);
-  background: none;
-  color: var(--text-dim);
-  cursor: pointer;
-  letter-spacing: 1px;
-  transition: all 0.1s;
-}
-
-.sz-btn:hover, .sz-btn.active { border-color: var(--red2); color: var(--red); }
-
-/* Divider */
-.divider-block {
-  display: flex;
-  align-items: center;
-  gap: 12px;
-  padding: 16px 0;
-  color: var(--border2);
-  font-family: var(--mono);
-  font-size: 11px;
-  letter-spacing: 4px;
-  justify-content: center;
-}
-
-.divider-block::before,
-.divider-block::after {
-  content: '';
-  flex: 1;
-  height: 1px;
-  background: var(--border);
-}
-
-/* WARNING BLOCK */
-.warn-block {
-  border: 1px solid var(--red2);
-  border-left: 4px solid var(--red);
-  background: var(--red-dim);
-  padding: 12px 16px;
-  font-family: var(--mono);
-  font-size: 12px;
-  color: #ff6666;
-  letter-spacing: 1px;
-  line-height: 1.7;
-  outline: none;
-  margin: 8px 0;
-}
-
-.warn-block:empty::before {
-  content: attr(data-ph);
-  color: rgba(255,100,100,0.4);
-  pointer-events: none;
-  font-style: italic;
-}
-
-/* TOOLBAR */
-.toolbar {
-  background: var(--bg2);
-  border-top: 2px solid var(--border);
-  padding: 8px 16px;
-  display: flex;
-  gap: 6px;
-  align-items: center;
-  flex-wrap: wrap;
-  flex-shrink: 0;
-}
-
-.toolbar-btn {
-  font-family: var(--mono);
-  font-size: 10px;
-  padding: 5px 10px;
-  border: 1px solid var(--border);
-  background: transparent;
-  color: var(--text-dim);
-  cursor: pointer;
-  letter-spacing: 1px;
-  text-transform: uppercase;
-  transition: all 0.15s;
-  white-space: nowrap;
-}
-
-.toolbar-btn:hover { border-color: var(--red2); color: var(--red); background: var(--red-dim); }
-.toolbar-sep { width: 1px; height: 20px; background: var(--border); }
+.sidebar{width:268px;background:var(--surface);border-right:1px solid var(--border);display:flex;flex-direction:column;flex-shrink:0;overflow:hidden;}
+.sb-head{padding:12px 16px;border-bottom:1px solid var(--border);background:var(--bg2);}
+.sb-label{font-family:var(--mono);font-size:9px;color:var(--text-dim);letter-spacing:3px;text-transform:uppercase;margin-bottom:8px;display:flex;align-items:center;gap:6px;}
+.sb-label::before{content:'';width:6px;height:6px;background:var(--red);animation:pRed 1.5s ease infinite;}
+@keyframes pRed{0%,100%{opacity:1;box-shadow:0 0 4px var(--red)}50%{opacity:.3;}}
+.sb-search{background:transparent;border:1px solid var(--border);color:var(--text);font-family:var(--mono);font-size:12px;padding:6px 10px;width:100%;outline:none;letter-spacing:1px;}
+.sb-search:focus{border-color:var(--red2);}.sb-search::placeholder{color:var(--text-dim);}
+.entity-list{flex:1;overflow-y:auto;padding:6px 0;}
+.entity-list::-webkit-scrollbar{width:4px;}.entity-list::-webkit-scrollbar-thumb{background:var(--border2);}
+.ent{padding:10px 16px;cursor:pointer;border-left:3px solid transparent;border-bottom:1px solid rgba(42,42,36,.5);transition:all .15s;position:relative;}
+.ent:hover{background:var(--surface2);border-left-color:var(--border2);}
+.ent.active{background:var(--surface2);border-left-color:var(--red);}
+.ent-num{font-family:var(--mono);font-size:10px;color:var(--text-dim);margin-bottom:3px;letter-spacing:1px;}
+.ent-name{font-family:var(--title);font-size:14px;color:var(--text-bright);margin-bottom:4px;}
+.ent-name:hover{animation:glitch .3s linear;}
+@keyframes glitch{0%,100%{text-shadow:none}20%{text-shadow:-2px 0 var(--red)}50%{text-shadow:2px 0 var(--amber)}80%{text-shadow:-1px 0 rgba(100,200,255,.5)}}
+.tbadge{display:inline-block;font-family:var(--mono);font-size:9px;padding:1px 6px;letter-spacing:2px;font-weight:bold;}
+.tbadge.SAFE{background:var(--green-dim);color:#6ab040;border:1px solid var(--green);}
+.tbadge.EUCLID{background:#4a3800;color:#c4920a;border:1px solid var(--amber-dim);}
+.tbadge.KETER{background:var(--red-dim);color:#ff4444;border:1px solid var(--red2);animation:gRed 2s ease infinite;}
+.tbadge.THAUMIEL{background:#0a1a3a;color:#4488cc;border:1px solid #224466;}
+.tbadge.NEUTRALIZED{background:#1a1a1a;color:#666;border:1px solid #333;text-decoration:line-through;}
+@keyframes gRed{0%,100%{box-shadow:0 0 4px rgba(204,17,17,.4)}50%{box-shadow:0 0 10px rgba(204,17,17,.8)}}
+.ent-del{position:absolute;right:10px;top:50%;transform:translateY(-50%);background:none;border:none;color:var(--red2);cursor:pointer;font-size:13px;opacity:0;transition:opacity .15s;padding:4px;}
+.ent:hover .ent-del{opacity:1;}
+.sb-foot{padding:12px 16px;border-top:1px solid var(--border);background:var(--bg2);}
+.sbtn{display:flex;align-items:center;justify-content:center;gap:6px;padding:7px 14px;border:1px solid var(--border2);background:transparent;color:var(--text-dim);font-family:var(--mono);font-size:11px;cursor:pointer;letter-spacing:2px;text-transform:uppercase;transition:all .15s;width:100%;}
+.sbtn:hover{border-color:var(--red2);color:var(--red);}
+.sbtn.danger{border-color:var(--red2);color:var(--red);}
+.sbtn.danger:hover{background:var(--red-dim);box-shadow:0 0 10px rgba(204,17,17,.3);}
+
+/* MAIN */
+.main{flex:1;display:flex;flex-direction:column;overflow:hidden;}
+.empty-state{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;color:var(--text-dim);font-family:var(--mono);text-align:center;padding:40px;gap:12px;}
+.empty-state .sym{font-size:80px;opacity:.07;filter:blur(1px);margin-bottom:10px;}
+.empty-state h2{font-family:var(--title);font-size:20px;color:var(--border2);letter-spacing:3px;}
+.empty-state p{font-size:12px;letter-spacing:1px;opacity:.6;max-width:360px;line-height:1.8;}
+
+/* DOC VIEW */
+.doc-view{flex:1;display:flex;flex-direction:column;overflow:hidden;animation:fslide .25s ease;}
+@keyframes fslide{from{opacity:0;transform:translateY(6px)}to{opacity:1;transform:none}}
+.ro-banner{background:var(--red-dim);border-bottom:1px solid var(--red2);padding:5px 20px;font-family:var(--mono);font-size:10px;color:#ff6666;letter-spacing:3px;text-transform:uppercase;text-align:center;flex-shrink:0;}
+
+/* DOC HEADER */
+.doc-header{background:var(--surface);border-bottom:1px solid var(--border);flex-shrink:0;position:relative;}
+.doc-id-corner{position:absolute;top:8px;right:12px;font-family:var(--mono);font-size:9px;color:var(--border2);letter-spacing:2px;}
+.dh-top{display:flex;align-items:stretch;border-bottom:1px solid var(--border);}
+.dh-logo{padding:14px 18px;border-right:1px solid var(--border);display:flex;align-items:center;justify-content:center;background:var(--bg2);}
+.dh-info{padding:10px 18px;flex:1;}
+.dh-num{font-family:var(--title);font-size:26px;color:var(--red);letter-spacing:2px;margin-bottom:4px;}
+.dh-name{font-family:var(--title);font-size:21px;color:var(--text-bright);letter-spacing:1px;}
+.dh-name-input{font-family:var(--title)!important;font-size:21px!important;color:var(--text-bright)!important;background:transparent;border:none!important;border-bottom:1px dashed var(--border)!important;outline:none;width:100%;padding:0!important;}
+.dh-stamps{padding:10px 14px;display:flex;gap:10px;align-items:center;border-right:1px solid var(--border);flex-direction:column;justify-content:center;}
+.stamp{font-family:var(--title);font-size:10px;padding:3px 7px;border:2px solid;letter-spacing:2px;opacity:.85;white-space:nowrap;}
+.stamp.cl{color:#b80000;border-color:#b80000;transform:rotate(3deg);}
+.stamp.re{color:var(--amber);border-color:var(--amber-dim);transform:rotate(-4deg);}
+.dh-meta{display:grid;grid-template-columns:repeat(4,1fr);}
+.dh-cell{padding:7px 12px;border-right:1px solid var(--border);}
+.dh-cell:last-child{border-right:none;}
+.dh-cell-label{font-family:var(--mono);font-size:9px;color:var(--text-dim);letter-spacing:2px;text-transform:uppercase;margin-bottom:3px;}
+.dh-cell-val{font-family:var(--mono);font-size:12px;color:var(--text-bright);}
+.meta-inp{background:transparent;border:none;border-bottom:1px dashed var(--border);color:var(--text-bright);font-family:var(--mono);font-size:12px;outline:none;width:100%;}
+.meta-sel{background:transparent;border:none;border-bottom:1px dashed var(--border);color:var(--text-bright);font-family:var(--mono);font-size:12px;outline:none;width:100%;cursor:pointer;}
+.meta-sel option{background:var(--surface2);}
+
+/* EDITOR PANES */
+.panes{flex:1;display:flex;overflow:hidden;}
+
+/* WRITE PANE */
+.pane-write{flex:1;display:flex;flex-direction:column;border-right:1px solid var(--border);min-width:0;}
+.pane-label{padding:5px 14px;background:var(--bg2);border-bottom:1px solid var(--border);font-family:var(--mono);font-size:9px;color:var(--text-dim);letter-spacing:3px;text-transform:uppercase;display:flex;align-items:center;justify-content:space-between;flex-shrink:0;}
+
+/* MARKDOWN TOOLBAR */
+.md-bar{padding:5px 8px;background:var(--surface);border-bottom:1px solid var(--border);display:flex;gap:3px;flex-wrap:wrap;align-items:center;flex-shrink:0;}
+.mdb{font-family:var(--mono);font-size:11px;padding:3px 7px;border:1px solid var(--border);background:transparent;color:var(--text-dim);cursor:pointer;letter-spacing:.5px;transition:all .1s;white-space:nowrap;}
+.mdb:hover{border-color:var(--red2);color:var(--red);background:var(--red-dim);}
+.mdb-sep{width:1px;height:16px;background:var(--border);margin:0 3px;}
+
+/* TEXTAREA */
+.md-ta{flex:1;background:var(--bg2);color:var(--text);font-family:var(--mono);font-size:13px;line-height:1.85;padding:18px 22px;border:none;outline:none;resize:none;tab-size:2;caret-color:var(--red);}
+.md-ta::placeholder{color:var(--text-dim);font-style:italic;}
+.md-ta::-webkit-scrollbar{width:5px;}.md-ta::-webkit-scrollbar-thumb{background:var(--border2);}
+
+/* HINT BAR */
+.md-hints{padding:6px 14px;background:var(--bg2);border-top:1px solid var(--border);font-family:var(--mono);font-size:10px;color:var(--text-dim);display:flex;gap:14px;flex-wrap:wrap;flex-shrink:0;}
+.md-hints code{color:var(--border2);background:none;font-size:10px;}
+
+/* PREVIEW PANE */
+.pane-preview{flex:1;display:flex;flex-direction:column;overflow:hidden;min-width:0;}
+.pane-preview-scroll{flex:1;overflow-y:auto;padding:20px 28px;}
+.pane-preview-scroll::-webkit-scrollbar{width:5px;}.pane-preview-scroll::-webkit-scrollbar-thumb{background:var(--border2);}
+
+/* FULL PREVIEW (read-only) */
+.pane-full{flex:1;overflow-y:auto;padding:28px 40px;}
+.pane-full::-webkit-scrollbar{width:6px;}.pane-full::-webkit-scrollbar-thumb{background:var(--border2);}
+
+/* ══ MARKDOWN RENDERED STYLES ══ */
+.md-out{font-family:var(--serif);font-size:15px;color:var(--text);line-height:1.9;}
+.md-out h1{font-family:var(--title);font-size:22px;color:var(--text-bright);letter-spacing:3px;text-transform:uppercase;border-bottom:1px solid var(--border);padding-bottom:8px;margin:20px 0 10px;}
+.md-out h2{font-family:var(--title);font-size:16px;color:var(--text-bright);letter-spacing:3px;text-transform:uppercase;margin:20px 0 6px;background:var(--red-dim);border-left:4px solid var(--red);padding:7px 14px;}
+.md-out h3{font-family:var(--mono);font-size:13px;color:var(--amber);letter-spacing:3px;text-transform:uppercase;margin:14px 0 6px;padding-left:10px;border-left:2px solid var(--amber-dim);}
+.md-out h4{font-family:var(--mono);font-size:12px;color:var(--text-dim);letter-spacing:2px;text-transform:uppercase;margin:10px 0 4px;}
+.md-out h5,.md-out h6{font-family:var(--mono);font-size:11px;color:var(--border2);letter-spacing:2px;margin:8px 0 4px;}
+.md-out p{margin:8px 0;}
+.md-out strong{color:var(--text-bright);}
+.md-out em{color:var(--text-dim);font-style:italic;}
+.md-out del{color:var(--text-dim);text-decoration:line-through;}
+.md-out a{color:var(--amber);text-decoration:none;border-bottom:1px dashed var(--amber-dim);}
+.md-out a:hover{color:var(--text-bright);}
+.md-out code{font-family:var(--mono);font-size:12px;background:rgba(0,0,0,.5);color:#88cc88;padding:1px 5px;border:1px solid var(--border);}
+.md-out pre{background:#000;border:1px solid var(--border);border-left:3px solid var(--red2);padding:14px 18px;overflow-x:auto;margin:12px 0;}
+.md-out pre code{background:none;border:none;padding:0;font-size:12px;color:#88cc88;display:block;}
+.md-out blockquote{border-left:4px solid var(--border2);margin:12px 0;padding:8px 16px;background:rgba(0,0,0,.3);color:var(--text-dim);font-style:italic;}
+.md-out blockquote p{margin:0;}
+.md-out ul,.md-out ol{padding-left:24px;margin:8px 0;}
+.md-out li{margin:4px 0;}
+.md-out li::marker{color:var(--red2);}
+.md-out table{width:100%;border-collapse:collapse;margin:12px 0;font-family:var(--mono);font-size:12px;}
+.md-out th{background:var(--surface2);border:1px solid var(--border);padding:7px 12px;color:var(--text-bright);letter-spacing:1px;text-align:left;}
+.md-out td{border:1px solid var(--border);padding:6px 12px;}
+.md-out tr:nth-child(even) td{background:rgba(0,0,0,.2);}
+.md-out hr{border:none;border-top:1px solid var(--border);margin:24px 0;position:relative;}
+.md-out hr::after{content:'⬥  ⬥  ⬥';position:absolute;left:50%;transform:translateX(-50%);top:-9px;background:var(--bg);padding:0 12px;color:var(--border2);font-size:11px;letter-spacing:6px;}
+.md-out img{max-width:100%;border:1px solid var(--border);display:block;margin:12px auto;filter:contrast(1.05) brightness(.9);}
+.preview-hint{font-family:var(--mono);font-size:11px;color:var(--text-dim);letter-spacing:2px;opacity:.35;text-align:center;padding:40px 20px;line-height:2;}
 
 /* MODAL */
-.overlay {
-  position: fixed;
-  inset: 0;
-  background: rgba(0,0,0,0.85);
-  z-index: 500;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  opacity: 0;
-  pointer-events: none;
-  transition: opacity 0.2s;
-  backdrop-filter: blur(2px);
-}
+.overlay{position:fixed;inset:0;background:rgba(0,0,0,.85);z-index:500;display:flex;align-items:center;justify-content:center;opacity:0;pointer-events:none;transition:opacity .2s;backdrop-filter:blur(2px);}
+.overlay.open{opacity:1;pointer-events:all;}
+.modal{background:var(--surface);border:1px solid var(--border2);width:460px;max-width:96vw;transform:scale(.96);transition:transform .2s;box-shadow:0 0 40px rgba(204,17,17,.1),0 0 80px rgba(0,0,0,.8);}
+.overlay.open .modal{transform:scale(1);}
+.mhd{background:var(--bg2);border-bottom:1px solid var(--border);padding:12px 20px;display:flex;align-items:center;justify-content:space-between;}
+.mtitle{font-family:var(--title);font-size:14px;color:var(--red);letter-spacing:3px;text-transform:uppercase;}
+.mclose{background:none;border:none;color:var(--text-dim);cursor:pointer;font-size:16px;font-family:var(--mono);}
+.mclose:hover{color:var(--red);}
+.mbody{padding:22px;}
+.mfoot{padding:12px 20px;border-top:1px solid var(--border);background:var(--bg2);display:flex;gap:10px;justify-content:flex-end;}
+.mbtn{font-family:var(--mono);font-size:11px;padding:7px 18px;border:1px solid;cursor:pointer;letter-spacing:2px;text-transform:uppercase;background:transparent;transition:all .15s;}
+.mbtn.c{border-color:var(--border2);color:var(--text-dim);}
+.mbtn.c:hover{color:var(--text);}
+.mbtn.ok{border-color:var(--red2);color:var(--red);}
+.mbtn.ok:hover{background:var(--red-dim);}
+.flabel{font-family:var(--mono);font-size:9px;color:var(--text-dim);letter-spacing:3px;text-transform:uppercase;margin-bottom:6px;display:block;}
+.frow{margin-bottom:16px;}
+.finput{background:var(--bg2);border:1px solid var(--border);color:var(--text-bright);font-family:var(--mono);font-size:14px;padding:8px 12px;outline:none;width:100%;letter-spacing:1px;transition:border-color .15s;}
+.finput:focus{border-color:var(--red2);box-shadow:0 0 8px rgba(204,17,17,.2);}
+.finput::placeholder{color:var(--text-dim);font-style:italic;}
+.fsel{background:var(--bg2);border:1px solid var(--border);color:var(--text-bright);font-family:var(--mono);font-size:12px;padding:8px 12px;outline:none;width:100%;cursor:pointer;}
+.fsel option{background:var(--surface2);}
+.fsel:focus{border-color:var(--red2);}
 
-.overlay.open { opacity: 1; pointer-events: all; }
+/* PASS MODAL */
+.pass-disp{font-family:var(--mono);font-size:24px;letter-spacing:8px;color:var(--green);text-align:center;padding:16px;background:#000;border:1px solid var(--green-dim);min-height:60px;display:flex;align-items:center;justify-content:center;}
+.pass-err{font-family:var(--mono);font-size:11px;color:var(--red);letter-spacing:2px;text-align:center;min-height:18px;margin-top:6px;}
+.pass-err.shake{animation:shake .3s ease;}
+@keyframes shake{0%,100%{transform:none}25%{transform:translateX(-6px)}75%{transform:translateX(6px)}}
+.keypad{display:grid;grid-template-columns:repeat(3,1fr);gap:4px;margin-top:12px;}
 
-.modal {
-  background: var(--surface);
-  border: 1px solid var(--border2);
-  padding: 0;
-  width: 500px;
-  max-width: 96vw;
-  transform: scale(0.96);
-  transition: transform 0.2s;
-  box-shadow: 0 0 40px rgba(204,17,17,0.1), 0 0 80px rgba(0,0,0,0.8);
-  position: relative;
-}
+/* IMAGE TABS */
+.tab-row{display:flex;gap:4px;margin-bottom:14px;}
+.tabBtn{font-family:var(--mono);font-size:10px;padding:5px 12px;border:1px solid var(--border);background:none;color:var(--text-dim);cursor:pointer;letter-spacing:2px;text-transform:uppercase;transition:all .12s;}
+.tabBtn.active{border-color:var(--red2);color:var(--red);background:var(--red-dim);}
+.tab-p{display:none;}.tab-p.active{display:block;}
+.dzone{border:2px dashed var(--border);padding:28px;text-align:center;color:var(--text-dim);font-family:var(--mono);font-size:11px;letter-spacing:2px;cursor:pointer;transition:all .2s;background:var(--bg2);}
+.dzone:hover,.dzone.over{border-color:var(--red2);color:var(--red);background:var(--red-dim);}
+.dzone input{display:none;}
 
-.overlay.open .modal { transform: scale(1); }
-
-.modal-header {
-  background: var(--bg2);
-  border-bottom: 1px solid var(--border);
-  padding: 12px 20px;
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-}
-
-.modal-title {
-  font-family: var(--title);
-  font-size: 14px;
-  color: var(--red);
-  letter-spacing: 3px;
-  text-transform: uppercase;
-}
-
-.modal-close {
-  background: none;
-  border: none;
-  color: var(--text-dim);
-  cursor: pointer;
-  font-family: var(--mono);
-  font-size: 16px;
-}
-
-.modal-close:hover { color: var(--red); }
-
-.modal-body { padding: 24px; }
-
-.field-label {
-  font-family: var(--mono);
-  font-size: 9px;
-  color: var(--text-dim);
-  letter-spacing: 3px;
-  text-transform: uppercase;
-  margin-bottom: 6px;
-  display: block;
-}
-
-.field-row { margin-bottom: 16px; }
-
-.field-input {
-  background: var(--bg2);
-  border: 1px solid var(--border);
-  color: var(--text-bright);
-  font-family: var(--mono);
-  font-size: 14px;
-  padding: 8px 12px;
-  outline: none;
-  width: 100%;
-  letter-spacing: 1px;
-  transition: border-color 0.15s;
-}
-
-.field-input:focus { border-color: var(--red2); box-shadow: 0 0 8px rgba(204,17,17,0.2); }
-.field-input::placeholder { color: var(--text-dim); font-style: italic; }
-
-.field-select {
-  background: var(--bg2);
-  border: 1px solid var(--border);
-  color: var(--text-bright);
-  font-family: var(--mono);
-  font-size: 12px;
-  padding: 8px 12px;
-  outline: none;
-  width: 100%;
-  cursor: pointer;
-}
-
-.field-select option { background: var(--surface2); }
-.field-select:focus { border-color: var(--red2); }
-
-.modal-footer {
-  padding: 12px 20px;
-  border-top: 1px solid var(--border);
-  background: var(--bg2);
-  display: flex;
-  gap: 10px;
-  justify-content: flex-end;
-}
-
-.modal-btn {
-  font-family: var(--mono);
-  font-size: 11px;
-  padding: 7px 18px;
-  border: 1px solid;
-  cursor: pointer;
-  letter-spacing: 2px;
-  text-transform: uppercase;
-  background: transparent;
-  transition: all 0.15s;
-}
-
-.modal-btn.cancel { border-color: var(--border2); color: var(--text-dim); }
-.modal-btn.cancel:hover { border-color: var(--border2); color: var(--text); }
-.modal-btn.confirm { border-color: var(--red2); color: var(--red); }
-.modal-btn.confirm:hover { background: var(--red-dim); box-shadow: 0 0 12px rgba(204,17,17,0.3); }
-
-/* PASSWORD MODAL SPECIAL */
-.pass-display {
-  font-family: var(--mono);
-  font-size: 24px;
-  letter-spacing: 8px;
-  color: var(--green);
-  text-align: center;
-  padding: 16px;
-  background: #000;
-  border: 1px solid var(--green-dim);
-  margin-bottom: 4px;
-  min-height: 60px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-}
-
-.pass-error {
-  font-family: var(--mono);
-  font-size: 11px;
-  color: var(--red);
-  letter-spacing: 2px;
-  text-align: center;
-  min-height: 18px;
-  margin-top: 6px;
-  animation: passErr 0.3s ease;
-}
-
-@keyframes passErr { 0%,100%{transform:none} 25%{transform:translateX(-6px)} 75%{transform:translateX(6px)} }
-
-/* TABS */
-.tab-row { display: flex; gap: 4px; margin-bottom: 16px; }
-
-.tab-btn {
-  font-family: var(--mono);
-  font-size: 10px;
-  padding: 6px 14px;
-  border: 1px solid var(--border);
-  background: none;
-  color: var(--text-dim);
-  cursor: pointer;
-  letter-spacing: 2px;
-  text-transform: uppercase;
-  transition: all 0.15s;
-}
-
-.tab-btn.active { border-color: var(--red2); color: var(--red); background: var(--red-dim); }
-
-.tab-panel { display: none; }
-.tab-panel.active { display: block; }
-
-/* DROP ZONE */
-.dropzone {
-  border: 2px dashed var(--border);
-  padding: 28px;
-  text-align: center;
-  color: var(--text-dim);
-  font-family: var(--mono);
-  font-size: 11px;
-  letter-spacing: 2px;
-  cursor: pointer;
-  transition: all 0.2s;
-  background: var(--bg2);
-}
-
-.dropzone:hover, .dropzone.over { border-color: var(--red2); color: var(--red); background: var(--red-dim); }
-.dropzone input { display: none; }
-
-/* NOTIFICATION */
-.toast {
-  position: fixed;
-  bottom: 80px;
-  right: 20px;
-  background: var(--surface2);
-  border: 1px solid var(--border2);
-  border-left: 4px solid var(--red);
-  font-family: var(--mono);
-  font-size: 11px;
-  color: var(--text);
-  padding: 10px 16px;
-  letter-spacing: 2px;
-  text-transform: uppercase;
-  z-index: 9990;
-  transform: translateX(120%);
-  transition: transform 0.25s;
-  max-width: 320px;
-}
-
-.toast.show { transform: none; }
-
-/* Read-only overlay */
-.readonly-banner {
-  position: sticky;
-  top: 0;
-  z-index: 50;
-  background: var(--red-dim);
-  border: 1px solid var(--red2);
-  border-top: none;
-  padding: 6px 20px;
-  font-family: var(--mono);
-  font-size: 10px;
-  color: #ff6666;
-  letter-spacing: 3px;
-  text-transform: uppercase;
-  text-align: center;
-}
-
-/* animations */
-@keyframes fadeSlide {
-  from { opacity: 0; transform: translateY(8px); }
-  to { opacity: 1; transform: none; }
-}
-
-.doc-view { animation: fadeSlide 0.25s ease; }
-.entity-item { animation: fadeSlide 0.15s ease; }
-
-/* Glitch on entity name hover */
-.entity-name:hover {
-  animation: glitch 0.3s linear;
-}
-
-@keyframes glitch {
-  0%,100% { text-shadow: none; }
-  20% { text-shadow: -2px 0 var(--red); clip-path: inset(20% 0 60% 0); }
-  40% { text-shadow: 2px 0 var(--amber); }
-  60% { text-shadow: -1px 0 var(--red); }
-  80% { text-shadow: 1px 0 rgba(100,200,255,0.5); }
-}
-
-/* Doc section separator line */
-.section-divider {
-  height: 1px;
-  background: var(--border);
-  margin: 20px 0;
-}
-
-/* Append id marker */
-.doc-id-corner {
-  position: absolute;
-  top: 8px;
-  right: 12px;
-  font-family: var(--mono);
-  font-size: 9px;
-  color: var(--border2);
-  letter-spacing: 2px;
-}
+/* TOAST */
+.toast{position:fixed;bottom:20px;right:20px;background:var(--surface2);border:1px solid var(--border2);border-left:4px solid var(--red);font-family:var(--mono);font-size:11px;color:var(--text);padding:10px 16px;letter-spacing:2px;text-transform:uppercase;z-index:9990;transform:translateX(130%);transition:transform .25s;max-width:320px;}
+.toast.show{transform:none;}
 </style>
 </head>
 <body>
 
-<!-- BOOT SCREEN -->
+<!-- BOOT -->
 <div id="bootScreen">
   <div class="boot-logo">☣</div>
   <div class="boot-line">SCP FOUNDATION — SECURE CONTAIN PROTECT</div>
-  <div class="boot-line" style="margin:8px 0; color:#333;">——————————————————————————————————</div>
+  <div class="boot-line" style="margin:8px 0;color:#1a1a14;">——————————————————————————————</div>
   <div class="boot-line ok">[OK] ИНИЦИАЛИЗАЦИЯ ПРОТОКОЛОВ БЕЗОПАСНОСТИ</div>
   <div class="boot-line ok">[OK] ПРОВЕРКА ЦЕЛОСТНОСТИ БАЗЫ ДАННЫХ</div>
   <div class="boot-line warn">[!!] ОБНАРУЖЕНЫ АНОМАЛЬНЫЕ ОБЪЕКТЫ: СВЕРКА...</div>
   <div class="boot-line ok">[OK] УРОВЕНЬ ДОСТУПА: ТОЛЬКО ЧТЕНИЕ</div>
-  <div class="boot-line ok">[OK] СОЕДИНЕНИЕ С СЕРВЕРОМ О5</div>
-  <div class="boot-line ok ">[OK] ТЫ СТАЛ ШЛЮХОЙ ЕБАНОЙ</div>
-  <div class="boot-line ok ">[OK] МИХАЛЫЧ ТЕБЕ ЗАЛУПУ ВЫБЬЕТ</div>
-  <div class="boot-line" style="margin-top:16px; color:#444; font-size:11px;">ДОСТУП РАЗРЕШЁН <span class="blink">█</span></div>
+  <div class="boot-line ok">[OK] ТЕПЕРЬ ТЫ ШЛЮХА</div>
+  <div class="boot-line" style="margin-top:16px;color:#2a2a24;font-size:11px;">ДОСТУП РАЗРЕШЁН <span class="blink">█</span></div>
 </div>
 
 <!-- HEADER -->
@@ -1067,9 +246,9 @@ header {
     <svg width="32" height="32" viewBox="0 0 100 100" fill="none">
       <circle cx="50" cy="50" r="45" stroke="#cc1111" stroke-width="3"/>
       <circle cx="50" cy="50" r="20" stroke="#cc1111" stroke-width="2"/>
-      <path d="M50 5 A45 45 0 0 1 89.1 72.5 L64 57.5 A20 20 0 0 0 50 30 Z" fill="#cc1111" opacity="0.8"/>
-      <path d="M89.1 72.5 A45 45 0 0 1 10.9 72.5 L36 57.5 A20 20 0 0 0 64 57.5 Z" fill="#cc1111" opacity="0.8"/>
-      <path d="M10.9 72.5 A45 45 0 0 1 50 5 L50 30 A20 20 0 0 0 36 57.5 Z" fill="#cc1111" opacity="0.8"/>
+      <path d="M50 5 A45 45 0 0 1 89.1 72.5 L64 57.5 A20 20 0 0 0 50 30 Z" fill="#cc1111" opacity=".8"/>
+      <path d="M89.1 72.5 A45 45 0 0 1 10.9 72.5 L36 57.5 A20 20 0 0 0 64 57.5 Z" fill="#cc1111" opacity=".8"/>
+      <path d="M10.9 72.5 A45 45 0 0 1 50 5 L50 30 A20 20 0 0 0 36 57.5 Z" fill="#cc1111" opacity=".8"/>
     </svg>
     SCP FOUNDATION
   </div>
@@ -1078,81 +257,49 @@ header {
     <span style="color:var(--border2);">CLEARANCE REQUIRED /// UNAUTHORIZED ACCESS PROHIBITED</span>
   </div>
   <div class="header-right">
-    <div class="access-badge read-only" id="accessBadge">● ТОЛЬКО ЧТЕНИЕ</div>
-    <button class="btn btn-sm" style="width:auto;" onclick="openAuthModal()" id="authBtn">⬡ ДОСТУП ПЕРСОНАЛА</button>
-    <button class="btn btn-sm btn-danger" style="width:auto;display:none;" onclick="logout()" id="logoutBtn">⬡ ВЫХОД</button>
+    <div class="access-badge ro" id="accessBadge">● ТОЛЬКО ЧТЕНИЕ</div>
+    <button class="hbtn" onclick="openAuthModal()" id="authBtn">⬡ ДОСТУП ПЕРСОНАЛА</button>
+    <button class="hbtn danger" onclick="logout()" id="logoutBtn" style="display:none;">⬡ ВЫХОД</button>
   </div>
 </header>
 
-<!-- LAYOUT -->
-<div class="app-layout">
-
+<div class="app">
   <!-- SIDEBAR -->
   <aside class="sidebar">
-    <div class="sidebar-header">
-      <div class="sidebar-label">ОБЪЕКТЫ БАЗЫ</div>
-      <input type="text" class="sidebar-search" placeholder="ПОИСК ОБЪЕКТА..." oninput="filterEntities(this.value)">
+    <div class="sb-head">
+      <div class="sb-label">ОБЪЕКТЫ БАЗЫ</div>
+      <input type="text" class="sb-search" placeholder="ПОИСК ОБЪЕКТА..." oninput="filterEntities(this.value)">
     </div>
     <div class="entity-list" id="entityList"></div>
-    <div class="sidebar-footer">
-      <button class="btn btn-danger" id="addEntityBtn" onclick="openNewEntityModal()" style="display:none;">
-        ⊕ СОЗДАТЬ ОБЪЕКТ
-      </button>
-      <div id="readonlyNote" style="font-family:var(--mono);font-size:9px;color:var(--text-dim);letter-spacing:1px;text-align:center;line-height:1.6;">
-        УРОВЕНЬ ДОСТУПА: ТОЛЬКО ЧТЕНИЕ<br>ДЛЯ РЕДАКТИРОВАНИЯ — ИДИТЕ НАХУЙ
-      </div>
+    <div class="sb-foot">
+      <button class="sbtn danger" id="addEntityBtn" onclick="openNewEntityModal()" style="display:none;">⊕ СОЗДАТЬ ОБЪЕКТ</button>
+      <div id="roNote" style="font-family:var(--mono);font-size:9px;color:var(--text-dim);letter-spacing:1px;text-align:center;line-height:1.6;">УРОВЕНЬ ДОСТУПА: ТОЛЬКО ЧТЕНИЕ<br>ДЛЯ РЕДАКТИРОВАНИЯ — АВТОРИЗУЙТЕСЬ</div>
     </div>
   </aside>
 
-  <!-- MAIN CONTENT -->
-  <div class="main-content" id="mainContent">
-    <div class="empty-state" id="emptyState">
-      <div class="scp-symbol">☣</div>
+  <!-- MAIN -->
+  <div class="main" id="mainContent">
+    <div class="empty-state">
+      <div class="sym">☣</div>
       <h2>ОБЪЕКТ НЕ ВЫБРАН</h2>
-      <p>ВЫБЕРИТЕ ОБЪЕКТ ИЗ СПИСКА СЛЕВА ДЛЯ ПРОСМОТРА ДОСЬЕ<br><br>
-      ДЛЯ СОЗДАНИЯ НОВЫХ ОБЪЕКТОВ ТРЕБУЕТСЯ АВТОРИЗАЦИЯ УРОВНЯ О5</p>
+      <p>ВЫБЕРИТЕ ОБЪЕКТ ИЗ СПИСКА СЛЕВА<br><br>ДЛЯ СОЗДАНИЯ ОБЪЕКТОВ ТРЕБУЕТСЯ ПОЙТИ НАХУЙ </p>
     </div>
-  </div>
-
-</div>
-
-<!-- ADMIN TOOLBAR (hidden) -->
-<div id="adminToolbar" style="display:none;">
-  <div class="toolbar">
-    <button class="toolbar-btn" onclick="addBlock('text')">¶ Абзац</button>
-    <button class="toolbar-btn" onclick="addBlock('h1')">H1 Заголовок</button>
-    <button class="toolbar-btn" onclick="addBlock('h2')">H2 Раздел</button>
-    <button class="toolbar-btn" onclick="addBlock('quote')">❝ Цитата</button>
-    <button class="toolbar-btn" onclick="addBlock('warning')">⚠ Предупреждение</button>
-    <div class="toolbar-sep"></div>
-    <button class="toolbar-btn" onclick="openImageModal()">⬛ Изображение/GIF</button>
-    <button class="toolbar-btn" onclick="addBlock('divider')">── Разделитель</button>
-    <div class="toolbar-sep"></div>
-    <button class="toolbar-btn" style="margin-left:auto;" onclick="saveAll()">💾 СОХРАНИТЬ</button>
   </div>
 </div>
 
 <!-- AUTH MODAL -->
 <div class="overlay" id="authOverlay">
-  <div class="modal" style="width:380px;">
-    <div class="modal-header">
-      <div class="modal-title">⬡ АВТОРИЗАЦИЯ ПЕРСОНАЛА</div>
-      <button class="modal-close" onclick="closeModal('authOverlay')">✕</button>
+  <div class="modal" style="width:350px;">
+    <div class="mhd"><div class="mtitle">⬡ АВТОРИЗАЦИЯ ПЕРСОНАЛА</div><button class="mclose" onclick="closeModal('authOverlay')">✕</button></div>
+    <div class="mbody">
+      <div style="font-family:var(--mono);font-size:10px;color:var(--text-dim);letter-spacing:2px;text-align:center;margin-bottom:18px;line-height:1.8;">ВВЕДИТЕ КОД ДОСТУПА<br><span style="color:var(--red-dim);">НЕСАНКЦИОНИРОВАННЫЙ ДОСТУП ФИКСИРУЕТСЯ</span></div>
+      <div class="pass-disp" id="passDisplay"><span class="blink" style="color:var(--green-dim);">█</span></div>
+      <div class="keypad" id="keypad"></div>
+      <div class="pass-err" id="passError"></div>
     </div>
-    <div class="modal-body">
-      <div style="font-family:var(--mono);font-size:10px;color:var(--text-dim);letter-spacing:2px;text-align:center;margin-bottom:20px;line-height:1.8;">
-        ВВЕДИТЕ КОД ДОСТУПА<br>
-        <span style="color:var(--red-dim);">НЕСАНКЦИОНИРОВАННЫЙ ДОСТУП ФИКСИРУЕТСЯ</span>
-      </div>
-      <div class="pass-display" id="passDisplay"><span class="blink" style="color:var(--green-dim);">█</span></div>
-      <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:4px;margin-top:12px;" id="keypad">
-        <!-- generated by JS -->
-      </div>
-      <div class="pass-error" id="passError"></div>
-    </div>
-    <div class="modal-footer">
-      <button class="modal-btn cancel" onclick="clearPass()">СБРОС</button>
-      <button class="modal-btn confirm" onclick="attemptAuth()">ПОДТВЕРДИТЬ</button>
+    <div class="mfoot">
+      <button class="mbtn c" onclick="clearPass()">СБРОС</button>
+      <button class="mbtn ok" onclick="attemptAuth()">ПОДТВЕРДИТЬ</button>
     </div>
   </div>
 </div>
@@ -1160,18 +307,12 @@ header {
 <!-- NEW ENTITY MODAL -->
 <div class="overlay" id="newEntityOverlay">
   <div class="modal">
-    <div class="modal-header">
-      <div class="modal-title">⊕ РЕГИСТРАЦИЯ НОВОГО ОБЪЕКТА</div>
-      <button class="modal-close" onclick="closeModal('newEntityOverlay')">✕</button>
-    </div>
-    <div class="modal-body">
-      <div class="field-row">
-        <label class="field-label">ОБОЗНАЧЕНИЕ ОБЪЕКТА</label>
-        <input type="text" class="field-input" id="newEntityName" placeholder="ИМЯ / НАЗВАНИЕ...">
-      </div>
-      <div class="field-row">
-        <label class="field-label">КЛАСС УГРОЗЫ</label>
-        <select class="field-select" id="newEntityThreat">
+    <div class="mhd"><div class="mtitle">⊕ РЕГИСТРАЦИЯ НОВОГО ОБЪЕКТА</div><button class="mclose" onclick="closeModal('newEntityOverlay')">✕</button></div>
+    <div class="mbody">
+      <div class="frow"><label class="flabel">ОБОЗНАЧЕНИЕ ОБЪЕКТА</label><input type="text" class="finput" id="newName" placeholder="ИМЯ / НАЗВАНИЕ..."></div>
+      <div class="frow">
+        <label class="flabel">КЛАСС УГРОЗЫ</label>
+        <select class="fsel" id="newThreat">
           <option value="SAFE">SAFE — БЕЗОПАСНЫЙ</option>
           <option value="EUCLID" selected>EUCLID — ЕВКЛИД</option>
           <option value="KETER">KETER — КЕТЕР ⚠</option>
@@ -1179,18 +320,12 @@ header {
           <option value="NEUTRALIZED">NEUTRALIZED — НЕЙТРАЛИЗОВАН</option>
         </select>
       </div>
-      <div class="field-row">
-        <label class="field-label">ОТВЕТСТВЕННЫЙ ИССЛЕДОВАТЕЛЬ</label>
-        <input type="text" class="field-input" id="newEntityResearcher" placeholder="Д-р ...">
-      </div>
-      <div class="field-row">
-        <label class="field-label">МЕСТО СОДЕРЖАНИЯ</label>
-        <input type="text" class="field-input" id="newEntityLocation" placeholder="ЗОНА-19, СЕКТОР-Б...">
-      </div>
+      <div class="frow"><label class="flabel">ОТВЕТСТВЕННЫЙ ИССЛЕДОВАТЕЛЬ</label><input type="text" class="finput" id="newResearcher" placeholder="Д-р ..."></div>
+      <div class="frow"><label class="flabel">МЕСТО СОДЕРЖАНИЯ</label><input type="text" class="finput" id="newLocation" placeholder="ЗОНА-19, СЕКТОР-Б..."></div>
     </div>
-    <div class="modal-footer">
-      <button class="modal-btn cancel" onclick="closeModal('newEntityOverlay')">ОТМЕНА</button>
-      <button class="modal-btn confirm" onclick="createEntity()">ЗАРЕГИСТРИРОВАТЬ</button>
+    <div class="mfoot">
+      <button class="mbtn c" onclick="closeModal('newEntityOverlay')">ОТМЕНА</button>
+      <button class="mbtn ok" onclick="createEntity()">ЗАРЕГИСТРИРОВАТЬ</button>
     </div>
   </div>
 </div>
@@ -1198,137 +333,102 @@ header {
 <!-- IMAGE MODAL -->
 <div class="overlay" id="imageOverlay">
   <div class="modal">
-    <div class="modal-header">
-      <div class="modal-title">⬛ ВЛОЖИТЬ МАТЕРИАЛ</div>
-      <button class="modal-close" onclick="closeModal('imageOverlay')">✕</button>
-    </div>
-    <div class="modal-body">
+    <div class="mhd"><div class="mtitle">⬛ ВЛОЖИТЬ ИЗОБРАЖЕНИЕ / GIF</div><button class="mclose" onclick="closeModal('imageOverlay')">✕</button></div>
+    <div class="mbody">
       <div class="tab-row">
-        <button class="tab-btn active" onclick="switchImgTab('url')">ПО ССЫЛКЕ</button>
-        <button class="tab-btn" onclick="switchImgTab('upload')">ЗАГРУЗИТЬ</button>
+        <button class="tabBtn active" onclick="switchImgTab('url')">ПО ССЫЛКЕ</button>
+        <button class="tabBtn" onclick="switchImgTab('upload')">ЗАГРУЗИТЬ</button>
       </div>
-      <div class="tab-panel active" id="imgtab-url">
-        <div class="field-row">
-          <label class="field-label">URL ИЗОБРАЖЕНИЯ / GIF</label>
-          <input type="url" class="field-input" id="imgUrl" placeholder="https://...">
-        </div>
-        <div style="font-family:var(--mono);font-size:10px;color:var(--text-dim);letter-spacing:1px;">
-          ПОДДЕРЖИВАЮТСЯ: .JPG .PNG .GIF .WEBP — GIPHY / TENOR
-        </div>
+      <div class="tab-p active" id="imgtab-url">
+        <div class="frow"><label class="flabel">URL ИЗОБРАЖЕНИЯ / GIF</label><input type="url" class="finput" id="imgUrl" placeholder="https://..."></div>
+        <div style="font-family:var(--mono);font-size:10px;color:var(--text-dim);letter-spacing:1px;">.JPG .PNG .GIF .WEBP — GIPHY / TENOR</div>
       </div>
-      <div class="tab-panel" id="imgtab-upload">
-        <div class="dropzone" id="dropZone" onclick="document.getElementById('fileInput').click()">
-          <input type="file" id="fileInput" accept="image/*,.gif" onchange="handleFile(event)">
-          <div style="font-size:24px;margin-bottom:8px;">⬛</div>
+      <div class="tab-p" id="imgtab-upload">
+        <div class="dzone" id="dropZone" onclick="document.getElementById('fileInput').click()">
+          <input type="file" id="fileInput" accept="image/*,.gif" onchange="handleImgFile(event)">
+          <div style="font-size:28px;margin-bottom:8px;">⬛</div>
           НАЖМИТЕ ИЛИ ПЕРЕТАЩИТЕ ФАЙЛ
         </div>
       </div>
-      <div class="field-row" style="margin-top:16px;">
-        <label class="field-label">ВЫРАВНИВАНИЕ</label>
-        <select class="field-select" id="imgAlign">
-          <option value="center" selected>ПО ЦЕНТРУ</option>
-          <option value="left">ПО ЛЕВОМУ КРАЮ</option>
-          <option value="right">ПО ПРАВОМУ КРАЮ</option>
-          <option value="float-left">ОБТЕКАНИЕ СЛЕВА</option>
-          <option value="float-right">ОБТЕКАНИЕ СПРАВА</option>
-        </select>
-      </div>
+      <div class="frow" style="margin-top:14px;"><label class="flabel">ПОДПИСЬ (необязательно)</label><input type="text" class="finput" id="imgCaption" placeholder="Фотография объекта..."></div>
     </div>
-    <div class="modal-footer">
-      <button class="modal-btn cancel" onclick="closeModal('imageOverlay')">ОТМЕНА</button>
-      <button class="modal-btn confirm" onclick="insertImage()">ВЛОЖИТЬ</button>
+    <div class="mfoot">
+      <button class="mbtn c" onclick="closeModal('imageOverlay')">ОТМЕНА</button>
+      <button class="mbtn ok" onclick="insertImageMd()">ВСТАВИТЬ В ТЕКСТ</button>
     </div>
   </div>
 </div>
 
-<!-- TOAST -->
 <div class="toast" id="toast"></div>
 
 <script>
-// ════════════════════════════════════════════════════════════════
-// STATE
-// ════════════════════════════════════════════════════════════════
+// ═══════════════════════════════════════════
+// INIT
+// ═══════════════════════════════════════════
 const ADMIN_PASS = 'root';
+
+marked.setOptions({ breaks: true, gfm: true });
+
 let isAdmin = false;
-let entities = JSON.parse(localStorage.getItem('scp_entities') || '[]');
+let entities = JSON.parse(localStorage.getItem('scp_db') || '[]');
 let activeId = null;
 let passBuffer = '';
-let pendingImgData = null;
-let scpCounter = 7000 + Math.floor(Math.random() * 2000);
+let pendingImg = null;
+let scpBase = 7000 + Math.floor(Math.random() * 2000);
 
-// ════════════════════════════════════════════════════════════════
-// BOOT
-// ════════════════════════════════════════════════════════════════
 window.addEventListener('load', () => {
   buildKeypad();
-  renderEntityList();
-  if (entities.length > 0) selectEntity(entities[0].id);
-  // remove boot after 3s
-  setTimeout(() => {
-    const b = document.getElementById('bootScreen');
-    b.style.display = 'none';
-  }, 3200);
+  renderList();
+  if (entities.length) selectEntity(entities[0].id);
+  setTimeout(() => { document.getElementById('bootScreen').style.display = 'none'; }, 3100);
 });
 
-// ════════════════════════════════════════════════════════════════
+// ═══════════════════════════════════════════
 // AUTH
-// ════════════════════════════════════════════════════════════════
+// ═══════════════════════════════════════════
 function buildKeypad() {
   const kp = document.getElementById('keypad');
-  const keys = ['7','8','9','4','5','6','1','2','3','⌫','0','↵'];
-  kp.innerHTML = '';
-  keys.forEach(k => {
-    const btn = document.createElement('button');
-    btn.textContent = k;
-    btn.className = 'modal-btn cancel';
-    btn.style.fontFamily = 'var(--mono)';
-    btn.style.fontSize = '18px';
-    btn.style.padding = '12px';
-    btn.style.letterSpacing = '0';
-    btn.onclick = () => keypressHandler(k);
-    kp.appendChild(btn);
+  ['7','8','9','4','5','6','1','2','3','⌫','0','↵'].forEach(k => {
+    const b = document.createElement('button');
+    b.textContent = k;
+    b.className = 'mbtn c';
+    Object.assign(b.style, { fontSize:'18px', padding:'12px', letterSpacing:'0', fontFamily:'var(--mono)' });
+    b.onclick = () => kpPress(k);
+    kp.appendChild(b);
   });
 }
 
-function keypressHandler(k) {
-  if (k === '⌫') { passBuffer = passBuffer.slice(0,-1); }
+function kpPress(k) {
+  if (k === '⌫') passBuffer = passBuffer.slice(0,-1);
   else if (k === '↵') { attemptAuth(); return; }
-  else if (passBuffer.length < 12) { passBuffer += k; }
-  document.getElementById('passDisplay').innerHTML =
-    passBuffer ? '●'.repeat(passBuffer.length) : '<span class="blink" style="color:var(--green-dim)">█</span>';
+  else if (passBuffer.length < 20) passBuffer += k;
+  refreshPassDisplay();
   document.getElementById('passError').textContent = '';
 }
 
-function clearPass() {
-  passBuffer = '';
-  document.getElementById('passDisplay').innerHTML = '<span class="blink" style="color:var(--green-dim)">█</span>';
-  document.getElementById('passError').textContent = '';
+function refreshPassDisplay() {
+  const d = document.getElementById('passDisplay');
+  d.innerHTML = passBuffer ? '●'.repeat(passBuffer.length) : '<span class="blink" style="color:var(--green-dim)">█</span>';
 }
 
-function openAuthModal() {
-  clearPass();
-  openOverlay('authOverlay');
-}
+function clearPass() { passBuffer = ''; refreshPassDisplay(); document.getElementById('passError').textContent = ''; }
+function openAuthModal() { clearPass(); openOverlay('authOverlay'); }
 
 function attemptAuth() {
-  // also accept text input typed with keyboard
-  if (passBuffer === ADMIN_PASS || document.getElementById('passDisplay').textContent.replace(/●/g,'') === ADMIN_PASS) {
-    // wrong - passBuffer is '●' based, we store actual chars
-  }
   if (passBuffer !== ADMIN_PASS) {
-    document.getElementById('passError').textContent = '⚠ КОД ДОСТУПА НЕВЕРЕН — ИНЦИДЕНТ ЗАФИКСИРОВАН';
-    clearPass();
-    return;
+    const e = document.getElementById('passError');
+    e.textContent = '⚠ КОД ДОСТУПА НЕВЕРЕН — ИНЦИДЕНТ ЗАФИКСИРОВАН';
+    e.classList.remove('shake'); void e.offsetWidth; e.classList.add('shake');
+    clearPass(); return;
   }
   isAdmin = true;
   closeModal('authOverlay');
   document.getElementById('accessBadge').textContent = '● АДМИНИСТРАТОР О5';
-  document.getElementById('accessBadge').className = 'access-badge admin';
+  document.getElementById('accessBadge').className = 'access-badge adm';
   document.getElementById('authBtn').style.display = 'none';
   document.getElementById('logoutBtn').style.display = 'inline-flex';
   document.getElementById('addEntityBtn').style.display = 'flex';
-  document.getElementById('readonlyNote').style.display = 'none';
-  document.getElementById('adminToolbar').style.display = 'block';
+  document.getElementById('roNote').style.display = 'none';
   toast('ДОСТУП РАЗРЕШЁН // УРОВЕНЬ О5');
   if (activeId) renderDoc();
 }
@@ -1336,433 +436,391 @@ function attemptAuth() {
 function logout() {
   isAdmin = false;
   document.getElementById('accessBadge').textContent = '● ТОЛЬКО ЧТЕНИЕ';
-  document.getElementById('accessBadge').className = 'access-badge read-only';
+  document.getElementById('accessBadge').className = 'access-badge ro';
   document.getElementById('authBtn').style.display = 'inline-flex';
   document.getElementById('logoutBtn').style.display = 'none';
   document.getElementById('addEntityBtn').style.display = 'none';
-  document.getElementById('readonlyNote').style.display = 'block';
-  document.getElementById('adminToolbar').style.display = 'none';
+  document.getElementById('roNote').style.display = 'block';
   toast('СЕССИЯ ЗАВЕРШЕНА');
   if (activeId) renderDoc();
 }
 
-// Allow keyboard typing in pass modal
-document.addEventListener('keydown', (e) => {
-  const overlay = document.getElementById('authOverlay');
-  if (!overlay.classList.contains('open')) return;
-  if (e.key >= '0' && e.key <= '9') keypressHandler(e.key);
-  else if (e.key === 'Backspace') keypressHandler('⌫');
-  else if (e.key === 'Enter') keypressHandler('↵');
-  // also allow letter input for "root"
-  else if (/^[a-zA-Z]$/.test(e.key)) {
-    if (passBuffer.length < 12) passBuffer += e.key;
-    document.getElementById('passDisplay').innerHTML = '●'.repeat(passBuffer.length);
-    document.getElementById('passError').textContent = '';
-  }
+document.addEventListener('keydown', ev => {
+  if (!document.getElementById('authOverlay').classList.contains('open')) return;
+  if (/^[a-zA-Z0-9]$/.test(ev.key)) { if (passBuffer.length < 20) { passBuffer += ev.key; refreshPassDisplay(); document.getElementById('passError').textContent=''; } }
+  else if (ev.key === 'Backspace') kpPress('⌫');
+  else if (ev.key === 'Enter') kpPress('↵');
 });
 
-// ════════════════════════════════════════════════════════════════
-// ENTITIES
-// ════════════════════════════════════════════════════════════════
-function renderEntityList(filter = '') {
+// ═══════════════════════════════════════════
+// ENTITY LIST
+// ═══════════════════════════════════════════
+function renderList(q = '') {
   const list = document.getElementById('entityList');
   list.innerHTML = '';
-  const filtered = filter
-    ? entities.filter(e => e.name.toLowerCase().includes(filter.toLowerCase()) || e.number.includes(filter))
-    : entities;
-
-  filtered.forEach(e => {
-    const item = document.createElement('div');
-    item.className = 'entity-item' + (e.id === activeId ? ' active' : '');
-    item.onclick = () => selectEntity(e.id);
-    item.innerHTML = `
-      <div class="entity-number">SCP-${e.number}</div>
-      <div class="entity-name">${esc(e.name)}</div>
-      <span class="threat-badge ${e.threat}">${e.threat}</span>
-      ${isAdmin ? `<button class="entity-delete" onclick="deleteEntity(event,'${e.id}')">✕</button>` : ''}
+  const arr = q ? entities.filter(e => e.name.toLowerCase().includes(q.toLowerCase()) || e.number.includes(q)) : entities;
+  arr.forEach(e => {
+    const d = document.createElement('div');
+    d.className = 'ent' + (e.id === activeId ? ' active' : '');
+    d.onclick = () => selectEntity(e.id);
+    d.innerHTML = `
+      <div class="ent-num">SCP-${e.number}</div>
+      <div class="ent-name">${esc(e.name)}</div>
+      <span class="tbadge ${e.threat}">${e.threat}</span>
+      ${isAdmin ? `<button class="ent-del" onclick="deleteEntity(event,'${e.id}')">✕</button>` : ''}
     `;
-    list.appendChild(item);
+    list.appendChild(d);
   });
 }
 
-function filterEntities(q) { renderEntityList(q); }
+function filterEntities(q) { renderList(q); }
 
 function selectEntity(id) {
-  if (activeId && isAdmin) saveCurrentEntity();
+  if (activeId && isAdmin) saveCurrent();
   activeId = id;
-  renderEntityList();
+  renderList();
   renderDoc();
 }
 
 function openNewEntityModal() {
   if (!isAdmin) { toast('ДОСТУП ЗАПРЕЩЁН'); return; }
-  document.getElementById('newEntityName').value = '';
-  document.getElementById('newEntityResearcher').value = '';
-  document.getElementById('newEntityLocation').value = '';
+  ['newName','newResearcher','newLocation'].forEach(i => document.getElementById(i).value = '');
   openOverlay('newEntityOverlay');
 }
 
 function createEntity() {
-  const name = document.getElementById('newEntityName').value.trim();
+  const name = document.getElementById('newName').value.trim();
   if (!name) { toast('ВВЕДИТЕ ОБОЗНАЧЕНИЕ ОБЪЕКТА'); return; }
-  scpCounter++;
+  scpBase++;
   const entity = {
     id: 'e' + Date.now(),
-    number: String(scpCounter),
+    number: String(scpBase),
     name,
-    threat: document.getElementById('newEntityThreat').value,
-    researcher: document.getElementById('newEntityResearcher').value.trim() || 'ЗАСЕКРЕЧЕНО',
-    location: document.getElementById('newEntityLocation').value.trim() || 'ЗАСЕКРЕЧЕНО',
-    blocks: []
+    threat: document.getElementById('newThreat').value,
+    researcher: document.getElementById('newResearcher').value.trim() || 'ЗАСЕКРЕЧЕНО',
+    location: document.getElementById('newLocation').value.trim() || 'ЗАСЕКРЕЧЕНО',
+    markdown: `# Процедуры содержания\n\nОбъект SCP-${scpBase} должен содержаться в...\n\n## Описание\n\nSCP-${scpBase} представляет собой...\n\n## История обнаружения\n\n> «Это было нечто, чего мы не могли объяснить» — Д-р ...\n\n## Способности\n\n- Способность 1\n- Способность 2\n\n---\n\n**Уровень секретности:** ██████\n`
   };
   entities.push(entity);
   closeModal('newEntityOverlay');
   saveAll();
-  renderEntityList();
+  renderList();
   selectEntity(entity.id);
 }
 
-function deleteEntity(e, id) {
-  e.stopPropagation();
-  if (!confirm('УДАЛИТЬ ОБЪЕКТ ИЗ БАЗЫ? ЭТО ДЕЙСТВИЕ НЕОБРАТИМО.')) return;
+function deleteEntity(ev, id) {
+  ev.stopPropagation();
+  if (!confirm('УДАЛИТЬ ОБЪЕКТ? ДЕЙСТВИЕ НЕОБРАТИМО.')) return;
   entities = entities.filter(x => x.id !== id);
   if (activeId === id) {
     activeId = null;
-    document.getElementById('mainContent').innerHTML = `
-      <div class="empty-state" id="emptyState">
-        <div class="scp-symbol">☣</div>
-        <h2>ОБЪЕКТ УДАЛЁН</h2>
-        <p>ЗАПИСЬ УНИЧТОЖЕНА ИЗ БАЗЫ ДАННЫХ</p>
-      </div>`;
+    document.getElementById('mainContent').innerHTML = `<div class="empty-state"><div class="sym">☣</div><h2>ОБЪЕКТ УДАЛЁН</h2><p>ЗАПИСЬ УНИЧТОЖЕНА ИЗ БАЗЫ ДАННЫХ</p></div>`;
   }
-  saveAll();
-  renderEntityList();
+  saveAll(); renderList();
 }
 
 function getEntity(id) { return entities.find(e => e.id === id); }
 
-// ════════════════════════════════════════════════════════════════
-// DOCUMENT RENDERING
-// ════════════════════════════════════════════════════════════════
+// ═══════════════════════════════════════════
+// DOC RENDER
+// ═══════════════════════════════════════════
 function renderDoc() {
   const entity = getEntity(activeId);
   if (!entity) return;
-
   const main = document.getElementById('mainContent');
   main.innerHTML = '';
 
+  const view = document.createElement('div');
+  view.className = 'doc-view';
+
   if (!isAdmin) {
     const banner = document.createElement('div');
-    banner.className = 'readonly-banner';
+    banner.className = 'ro-banner';
     banner.textContent = '⚠ РЕЖИМ ТОЛЬКО ДЛЯ ЧТЕНИЯ // РЕДАКТИРОВАНИЕ ЗАПРЕЩЕНО // НЕСАНКЦИОНИРОВАННОЕ ИЗМЕНЕНИЕ ДАННЫХ ЯВЛЯЕТСЯ НАРУШЕНИЕМ ПРОТОКОЛА';
-    main.appendChild(banner);
+    view.appendChild(banner);
   }
 
-  const docView = document.createElement('div');
-  docView.className = 'doc-view';
-  docView.style.cssText = 'flex:1;overflow-y:auto;padding:28px 32px 80px;';
-  docView.innerHTML = buildDocHeader(entity);
+  // doc header
+  const hdr = document.createElement('div');
+  hdr.className = 'doc-header';
+  hdr.innerHTML = buildHeader(entity);
+  view.appendChild(hdr);
 
-  const blocksArea = document.createElement('div');
-  blocksArea.className = 'blocks-area';
-  blocksArea.id = 'blocksArea';
-  docView.appendChild(blocksArea);
+  // panes
+  const panes = document.createElement('div');
+  panes.className = 'panes';
 
-  main.appendChild(docView);
-  docView.style.display = 'flex';
-  docView.style.flexDirection = 'column';
+  if (isAdmin) {
+    // Write pane
+    const wp = document.createElement('div');
+    wp.className = 'pane-write';
+    wp.innerHTML = `
+      <div class="pane-label"><span>MARKDOWN — РЕДАКТОР</span><span style="color:var(--green-dim);">● РЕЖИМ ЗАПИСИ</span></div>
+      <div class="md-bar" id="mdBar">${buildMdBarHtml()}</div>
+      <textarea class="md-ta" id="mdTa" placeholder="# Заголовок раздела&#10;&#10;Начните писать статью на Markdown...&#10;&#10;## Раздел&#10;&#10;**Жирный**, *курсив*, \`код\`, ~~зачёркнутый~~&#10;&#10;> Цитата или показания&#10;&#10;- Список&#10;- Элементов">${esc(entity.markdown || '')}</textarea>
+      <div class="md-hints">
+        <code># H1</code><code>## H2</code><code>### H3</code>
+        <code>**жирный**</code><code>*курсив*</code><code>~~зачёрк~~</code><code>\`код\`</code>
+        <code>> цитата</code><code>- список</code><code>---</code><code>![alt](url)</code><code>| таблица |</code>
+      </div>
+    `;
+    panes.appendChild(wp);
 
-  // Scrollbar
-  docView.style.cssText += ';overflow-y:auto;';
-  docView.addEventListener('scroll', () => {});
+    // Preview pane
+    const pp = document.createElement('div');
+    pp.className = 'pane-preview';
+    pp.innerHTML = `<div class="pane-label"><span>ПРЕДПРОСМОТР</span><span style="color:var(--amber-dim);">◉ LIVE</span></div>`;
+    const scroll = document.createElement('div');
+    scroll.className = 'pane-preview-scroll';
+    const out = document.createElement('div');
+    out.className = 'md-out';
+    out.id = 'mdOut';
+    scroll.appendChild(out);
+    pp.appendChild(scroll);
+    panes.appendChild(pp);
 
-  renderBlocks(entity);
+    view.appendChild(panes);
+    main.appendChild(view);
 
-  if (!entity.blocks || entity.blocks.length === 0) {
-    if (isAdmin) {
-      addBlock('h1');
-      addBlock('text');
-    }
+    // setup textarea events
+    const ta = document.getElementById('mdTa');
+    ta.addEventListener('input', () => {
+      entity.markdown = ta.value;
+      renderPreview(ta.value);
+    });
+    ta.addEventListener('keydown', ev => {
+      if (ev.key === 'Tab') {
+        ev.preventDefault();
+        const s = ta.selectionStart;
+        ta.setRangeText('  ', s, s, 'end');
+        entity.markdown = ta.value;
+        renderPreview(ta.value);
+      }
+    });
+
+    renderPreview(entity.markdown || '');
+
+  } else {
+    // Read-only full preview
+    const fp = document.createElement('div');
+    fp.className = 'pane-full';
+    const out = document.createElement('div');
+    out.className = 'md-out';
+    out.innerHTML = entity.markdown
+      ? marked.parse(entity.markdown)
+      : '<div class="preview-hint">[ ДОКУМЕНТ ПУСТ ]<br>СОДЕРЖИМОЕ ОТСУТСТВУЕТ</div>';
+    fp.appendChild(out);
+    panes.appendChild(fp);
+    view.appendChild(panes);
+    main.appendChild(view);
   }
 }
 
-function buildDocHeader(entity) {
-  const isEdit = isAdmin;
+function renderPreview(md) {
+  const out = document.getElementById('mdOut');
+  if (!out) return;
+  out.innerHTML = md ? marked.parse(md) : '<div class="preview-hint">НАЧНИТЕ ВВОДИТЬ ТЕКСТ СЛЕВА...</div>';
+}
+
+function buildHeader(entity) {
+  const e = isAdmin;
+  const statusColor = entity.threat==='NEUTRALIZED' ? '#666' : entity.threat==='KETER' ? 'var(--red)' : 'var(--green)';
+  const statusText = entity.threat==='NEUTRALIZED' ? 'НЕЙТРАЛИЗОВАН' : entity.threat==='KETER' ? '⚠ АКТИВЕН' : 'ПОД КОНТРОЛЕМ';
   return `
-  <div class="doc-header" style="margin-bottom:16px;">
-    <div class="doc-id-corner">ДОКУМЕНТ #${entity.number}-${Date.now().toString(36).toUpperCase().slice(-4)}</div>
-    <div class="doc-header-top">
-      <div class="doc-header-logo">
-        <svg width="52" height="52" viewBox="0 0 100 100" fill="none">
-          <circle cx="50" cy="50" r="45" stroke="#cc1111" stroke-width="3"/>
-          <circle cx="50" cy="50" r="20" stroke="#cc1111" stroke-width="2"/>
-          <path d="M50 5 A45 45 0 0 1 89.1 72.5 L64 57.5 A20 20 0 0 0 50 30 Z" fill="#cc1111" opacity="0.8"/>
-          <path d="M89.1 72.5 A45 45 0 0 1 10.9 72.5 L36 57.5 A20 20 0 0 0 64 57.5 Z" fill="#cc1111" opacity="0.8"/>
-          <path d="M10.9 72.5 A45 45 0 0 1 50 5 L50 30 A20 20 0 0 0 36 57.5 Z" fill="#cc1111" opacity="0.8"/>
-        </svg>
-      </div>
-      <div class="doc-header-info">
-        <div class="doc-item-number">ОБЪЕКТ №: SCP-${entity.number}</div>
-        ${isEdit
-          ? `<input class="doc-name-input" type="text" value="${esc(entity.name)}" id="docNameInput" oninput="updateEntityMeta('name',this.value)">`
-          : `<div class="doc-name">${esc(entity.name)}</div>`}
-      </div>
-      <div class="doc-stamps">
-        <div class="stamp classified">ЗАСЕКРЕЧЕНО</div>
-        <div class="stamp restricted">ОГРАНИЧЕННЫЙ ДОСТУП</div>
+  <div class="doc-id-corner">DOC #${entity.number}-${Date.now().toString(36).toUpperCase().slice(-4)}</div>
+  <div class="dh-top">
+    <div class="dh-logo">
+      <svg width="50" height="50" viewBox="0 0 100 100" fill="none">
+        <circle cx="50" cy="50" r="45" stroke="#cc1111" stroke-width="3"/>
+        <circle cx="50" cy="50" r="20" stroke="#cc1111" stroke-width="2"/>
+        <path d="M50 5 A45 45 0 0 1 89.1 72.5 L64 57.5 A20 20 0 0 0 50 30 Z" fill="#cc1111" opacity=".8"/>
+        <path d="M89.1 72.5 A45 45 0 0 1 10.9 72.5 L36 57.5 A20 20 0 0 0 64 57.5 Z" fill="#cc1111" opacity=".8"/>
+        <path d="M10.9 72.5 A45 45 0 0 1 50 5 L50 30 A20 20 0 0 0 36 57.5 Z" fill="#cc1111" opacity=".8"/>
+      </svg>
+    </div>
+    <div class="dh-info">
+      <div class="dh-num">ОБЪЕКТ №: SCP-${entity.number}</div>
+      ${e ? `<input class="dh-name-input" type="text" value="${esc(entity.name)}" oninput="updateMeta('name',this.value)">` : `<div class="dh-name">${esc(entity.name)}</div>`}
+    </div>
+    <div class="dh-stamps">
+      <div class="stamp cl">ЗАСЕКРЕЧЕНО</div>
+      <div class="stamp re">ОГРАНИЧЕННЫЙ ДОСТУП</div>
+    </div>
+  </div>
+  <div class="dh-meta">
+    <div class="dh-cell">
+      <div class="dh-cell-label">КЛАСС УГРОЗЫ</div>
+      <div class="dh-cell-val">
+        ${e ? `<select class="meta-sel" onchange="updateMeta('threat',this.value)">${['SAFE','EUCLID','KETER','THAUMIEL','NEUTRALIZED'].map(t=>`<option value="${t}" ${entity.threat===t?'selected':''}>${t}</option>`).join('')}</select>` : `<span class="tbadge ${entity.threat}">${entity.threat}</span>`}
       </div>
     </div>
-    <div class="doc-meta-row">
-      <div class="doc-meta-cell">
-        <div class="doc-meta-label">КЛАСС УГРОЗЫ</div>
-        <div class="doc-meta-value">
-          ${isEdit
-            ? `<select class="threat-select" onchange="updateEntityMeta('threat',this.value)">
-                ${['SAFE','EUCLID','KETER','THAUMIEL','NEUTRALIZED'].map(t=>`<option value="${t}" ${entity.threat===t?'selected':''}>${t}</option>`).join('')}
-               </select>`
-            : `<span class="threat-badge ${entity.threat}">${entity.threat}</span>`}
-        </div>
-      </div>
-      <div class="doc-meta-cell">
-        <div class="doc-meta-label">ИССЛЕДОВАТЕЛЬ</div>
-        <div class="doc-meta-value">
-          ${isEdit
-            ? `<input class="doc-meta-value editable" type="text" value="${esc(entity.researcher||'')}" oninput="updateEntityMeta('researcher',this.value)">`
-            : esc(entity.researcher || 'ЗАСЕКРЕЧЕНО')}
-        </div>
-      </div>
-      <div class="doc-meta-cell">
-        <div class="doc-meta-label">МЕСТО СОДЕРЖАНИЯ</div>
-        <div class="doc-meta-value">
-          ${isEdit
-            ? `<input class="doc-meta-value editable" type="text" value="${esc(entity.location||'')}" oninput="updateEntityMeta('location',this.value)">`
-            : esc(entity.location || 'ЗАСЕКРЕЧЕНО')}
-        </div>
-      </div>
-      <div class="doc-meta-cell">
-        <div class="doc-meta-label">СТАТУС</div>
-        <div class="doc-meta-value" style="color:${entity.threat==='NEUTRALIZED'?'#666':entity.threat==='KETER'?'var(--red)':'var(--green)'};">
-          ${entity.threat === 'NEUTRALIZED' ? 'НЕЙТРАЛИЗОВАН' : entity.threat === 'KETER' ? '⚠ АКТИВЕН' : 'ПОД КОНТРОЛЕМ'}
-        </div>
-      </div>
+    <div class="dh-cell">
+      <div class="dh-cell-label">ИССЛЕДОВАТЕЛЬ</div>
+      <div class="dh-cell-val">${e ? `<input class="meta-inp" type="text" value="${esc(entity.researcher||'')}" oninput="updateMeta('researcher',this.value)">` : esc(entity.researcher||'ЗАСЕКРЕЧЕНО')}</div>
+    </div>
+    <div class="dh-cell">
+      <div class="dh-cell-label">МЕСТО СОДЕРЖАНИЯ</div>
+      <div class="dh-cell-val">${e ? `<input class="meta-inp" type="text" value="${esc(entity.location||'')}" oninput="updateMeta('location',this.value)">` : esc(entity.location||'ЗАСЕКРЕЧЕНО')}</div>
+    </div>
+    <div class="dh-cell">
+      <div class="dh-cell-label">СТАТУС</div>
+      <div class="dh-cell-val" style="color:${statusColor};">${statusText}</div>
     </div>
   </div>`;
 }
 
-// ════════════════════════════════════════════════════════════════
-// BLOCKS
-// ════════════════════════════════════════════════════════════════
-function renderBlocks(entity) {
-  const area = document.getElementById('blocksArea');
-  if (!area) return;
-  area.innerHTML = '';
-  (entity.blocks || []).forEach((b, i) => area.appendChild(buildBlockEl(b, i)));
-}
-
-function buildBlockEl(block, idx) {
-  const wrap = document.createElement('div');
-  wrap.className = 'block';
-
-  if (isAdmin) {
-    const ctrl = document.createElement('div');
-    ctrl.className = 'blk-controls';
-    ctrl.innerHTML = `
-      <button class="blk-ctrl" onclick="moveBlock(${idx},-1)" title="Вверх">↑</button>
-      <button class="blk-ctrl" onclick="moveBlock(${idx},1)" title="Вниз">↓</button>
-      <button class="blk-ctrl" onclick="removeBlock(${idx})" title="Удалить" style="color:var(--red)">✕</button>
-    `;
-    wrap.appendChild(ctrl);
-  }
-
-  if (block.type === 'image') {
-    const imgWrap = document.createElement('div');
-    imgWrap.className = 'image-block';
-    const sizeW = block.size === 'small' ? '280px' : block.size === 'large' ? '100%' : '520px';
-    const alignStyle =
-      block.align === 'center' ? `margin:0 auto; max-width:${sizeW};` :
-      block.align === 'right' ? `margin-left:auto; max-width:${sizeW};` :
-      block.align === 'float-left' ? `float:left; margin:0 16px 8px 0; max-width:${sizeW};` :
-      block.align === 'float-right' ? `float:right; margin:0 0 8px 16px; max-width:${sizeW};` :
-      `max-width:${sizeW};`;
-    imgWrap.innerHTML = `
-      <div style="${alignStyle}">
-        <img src="${esc(block.src)}" alt="" style="width:100%;" onerror="this.style.opacity=0.3">
-        ${isAdmin ? `<div class="img-size-row">
-          <button class="sz-btn ${block.size==='small'?'active':''}" onclick="setImgSize(${idx},'small')">МАЛЫЙ</button>
-          <button class="sz-btn ${!block.size||block.size==='medium'?'active':''}" onclick="setImgSize(${idx},'medium')">СРЕДНИЙ</button>
-          <button class="sz-btn ${block.size==='large'?'active':''}" onclick="setImgSize(${idx},'large')">ПОЛНЫЙ</button>
-        </div>` : ''}
-        <div class="img-caption" contenteditable="${isAdmin}" data-idx="${idx}" onblur="saveCaption(${idx},this)">${esc(block.caption||'')}</div>
-      </div>
-    `;
-    wrap.appendChild(imgWrap);
-  } else if (block.type === 'divider') {
-    wrap.innerHTML += `<div class="divider-block">// ТОМ I // ТОМ II //</div>`;
-  } else if (block.type === 'warning') {
-    const d = document.createElement('div');
-    d.className = 'warn-block';
-    d.contentEditable = isAdmin ? 'true' : 'false';
-    d.setAttribute('data-ph', '⚠ ВНИМАНИЕ: ВВЕДИТЕ ПРЕДУПРЕЖДЕНИЕ...');
-    d.innerHTML = block.content || '';
-    if (isAdmin) d.addEventListener('input', () => { getEntity(activeId).blocks[idx].content = d.innerHTML; });
-    wrap.appendChild(d);
-  } else {
-    const d = document.createElement('div');
-    d.className = `text-block ${block.type === 'h1' ? 'h1' : block.type === 'h2' ? 'h2' : block.type === 'quote' ? 'quote' : ''}`;
-    d.contentEditable = isAdmin ? 'true' : 'false';
-    d.setAttribute('data-ph',
-      block.type === 'h1' ? 'РАЗДЕЛ: ПРОЦЕДУРЫ СОДЕРЖАНИЯ...' :
-      block.type === 'h2' ? 'ПОДРАЗДЕЛ...' :
-      block.type === 'quote' ? 'ПОКАЗАНИЯ СВИДЕТЕЛЯ / ЗАПИСЬ ЖУРНАЛА...' :
-      'ОПИСАНИЕ / ИСТОРИЯ ОБЪЕКТА...'
-    );
-    d.innerHTML = block.content || '';
-    if (isAdmin) {
-      d.addEventListener('input', () => { getEntity(activeId).blocks[idx].content = d.innerHTML; });
-      d.addEventListener('keydown', (e) => {
-        if (e.key === 'Enter' && !e.shiftKey && block.type !== 'text') { e.preventDefault(); addBlock('text'); }
-      });
-    }
-    wrap.appendChild(d);
-  }
-
-  return wrap;
-}
-
-function addBlock(type) {
-  const entity = getEntity(activeId);
-  if (!entity || !isAdmin) return;
-  if (!entity.blocks) entity.blocks = [];
-  entity.blocks.push({ type, content: '', src: '', caption: '', align: 'center', size: 'medium' });
-  renderBlocks(entity);
-  setTimeout(() => {
-    const tbs = document.querySelectorAll('.text-block, .warn-block');
-    if (tbs.length) tbs[tbs.length-1].focus();
-  }, 50);
-}
-
-function removeBlock(idx) {
-  const entity = getEntity(activeId);
-  if (!entity) return;
-  entity.blocks.splice(idx, 1);
-  renderBlocks(entity);
-}
-
-function moveBlock(idx, dir) {
-  const entity = getEntity(activeId);
-  if (!entity) return;
-  const ni = idx + dir;
-  if (ni < 0 || ni >= entity.blocks.length) return;
-  [entity.blocks[idx], entity.blocks[ni]] = [entity.blocks[ni], entity.blocks[idx]];
-  renderBlocks(entity);
-}
-
-function setImgSize(idx, size) {
-  const entity = getEntity(activeId);
-  if (!entity || !entity.blocks[idx]) return;
-  entity.blocks[idx].size = size;
-  renderBlocks(entity);
-}
-
-function saveCaption(idx, el) {
-  const entity = getEntity(activeId);
-  if (!entity || !entity.blocks[idx]) return;
-  entity.blocks[idx].caption = el.innerText;
-}
-
-function updateEntityMeta(field, value) {
+function updateMeta(field, value) {
   const entity = getEntity(activeId);
   if (!entity) return;
   entity[field] = value;
-  renderEntityList();
+  renderList();
 }
 
-function saveCurrentEntity() {
+// ═══════════════════════════════════════════
+// MARKDOWN TOOLBAR
+// ═══════════════════════════════════════════
+function buildMdBarHtml() {
+  const items = [
+    ['H1','wrapLine("# ","")'],['H2','wrapLine("## ","")'],['H3','wrapLine("### ","")'],
+    ['SEP',null],
+    ['<b>B</b>','wrapSel("**","**")'],['<i>I</i>','wrapSel("*","*")'],['<s>S</s>','wrapSel("~~","~~")'],
+    ['`code`','wrapSel("`","`")'],['``` блок','wrapSel("```\\n","\\n```")'],
+    ['SEP',null],
+    ['❝ цитата','wrapLine("> ","")'],
+    ['⚠ внимание','wrapLine("> ⚠ **ВНИМАНИЕ:** ","")'],
+    ['• список','wrapLine("- ","")'],['1. нумер.','wrapLine("1. ","")'],
+    ['SEP',null],
+    ['⊞ таблица','insertTpl("| Колонка 1 | Колонка 2 | Колонка 3 |\\n|-----------|-----------|----------|\\n| Данные    | Данные    | Данные   |\\n")'],
+    ['─── линия','insertTpl("\\n---\\n")'],
+    ['SEP',null],
+    ['🖼 картинка','openImgModal()'],
+    ['🔗 ссылка','wrapSel("[","](url)")'],
+  ];
+  return items.map(([label, action]) => {
+    if (label === 'SEP') return `<div class="mdb-sep"></div>`;
+    return `<button class="mdb" onclick="${action}">${label}</button>`;
+  }).join('');
+}
+
+// ═══════════════════════════════════════════
+// MARKDOWN HELPERS
+// ═══════════════════════════════════════════
+function getTA() { return document.getElementById('mdTa'); }
+
+function wrapSel(before, after) {
+  const ta = getTA(); if (!ta) return;
+  const s = ta.selectionStart, e = ta.selectionEnd;
+  const sel = ta.value.slice(s, e) || 'текст';
+  ta.setRangeText(before + sel + after, s, e, 'select');
+  ta.focus();
+  syncMd();
+}
+
+function wrapLine(prefix) {
+  const ta = getTA(); if (!ta) return;
+  const s = ta.selectionStart;
+  const ls = ta.value.lastIndexOf('\n', s - 1) + 1;
+  const le = ta.value.indexOf('\n', s);
+  const end = le === -1 ? ta.value.length : le;
+  ta.setRangeText(prefix + ta.value.slice(ls, end), ls, end, 'end');
+  ta.focus();
+  syncMd();
+}
+
+function insertTpl(tpl) {
+  const ta = getTA(); if (!ta) return;
+  const s = ta.selectionStart;
+  ta.setRangeText(tpl, s, s, 'end');
+  ta.focus();
+  syncMd();
+}
+
+function syncMd() {
+  const ta = getTA(); if (!ta) return;
   const entity = getEntity(activeId);
-  if (!entity) return;
-  const nameEl = document.getElementById('docNameInput');
-  if (nameEl) entity.name = nameEl.value;
+  if (entity) entity.markdown = ta.value;
+  renderPreview(ta.value);
 }
 
-// ════════════════════════════════════════════════════════════════
+// ═══════════════════════════════════════════
 // IMAGE
-// ════════════════════════════════════════════════════════════════
-function openImageModal() {
-  pendingImgData = null;
+// ═══════════════════════════════════════════
+function openImgModal() {
+  pendingImg = null;
   document.getElementById('imgUrl').value = '';
-  document.getElementById('dropZone').innerHTML = `<input type="file" id="fileInput" accept="image/*,.gif" onchange="handleFile(event)"><div style="font-size:24px;margin-bottom:8px;">⬛</div>НАЖМИТЕ ИЛИ ПЕРЕТАЩИТЕ ФАЙЛ`;
-  document.getElementById('fileInput').onchange = handleFile;
+  document.getElementById('imgCaption').value = '';
+  document.getElementById('dropZone').innerHTML = `<input type="file" id="fileInput" accept="image/*,.gif" onchange="handleImgFile(event)"><div style="font-size:28px;margin-bottom:8px;">⬛</div>НАЖМИТЕ ИЛИ ПЕРЕТАЩИТЕ ФАЙЛ`;
   switchImgTab('url');
   openOverlay('imageOverlay');
-
   const dz = document.getElementById('dropZone');
-  dz.ondragover = (e) => { e.preventDefault(); dz.classList.add('over'); };
+  dz.ondragover = ev => { ev.preventDefault(); dz.classList.add('over'); };
   dz.ondragleave = () => dz.classList.remove('over');
-  dz.ondrop = (e) => { e.preventDefault(); dz.classList.remove('over'); handleFiles(e.dataTransfer.files); };
+  dz.ondrop = ev => { ev.preventDefault(); dz.classList.remove('over'); handleImgFiles(ev.dataTransfer.files); };
 }
 
-function handleFile(e) { handleFiles(e.target.files); }
+function handleImgFile(ev) { handleImgFiles(ev.target.files); }
 
-function handleFiles(files) {
+function handleImgFiles(files) {
   if (!files || !files[0]) return;
   const reader = new FileReader();
-  reader.onload = (e) => {
-    pendingImgData = e.target.result;
-    document.getElementById('dropZone').innerHTML = `<img src="${pendingImgData}" style="max-height:100px;max-width:100%;border:1px solid var(--border);">`;
+  reader.onload = ev => {
+    pendingImg = ev.target.result;
+    document.getElementById('dropZone').innerHTML = `<img src="${pendingImg}" style="max-height:90px;max-width:100%;border:1px solid var(--border);">`;
   };
   reader.readAsDataURL(files[0]);
 }
 
 function switchImgTab(tab) {
-  document.querySelectorAll('.tab-btn').forEach((b, i) => b.classList.toggle('active', (i===0&&tab==='url')||(i===1&&tab==='upload')));
-  document.getElementById('imgtab-url').classList.toggle('active', tab === 'url');
-  document.getElementById('imgtab-upload').classList.toggle('active', tab === 'upload');
+  document.querySelectorAll('.tabBtn').forEach((b, i) => b.classList.toggle('active', (i===0&&tab==='url')||(i===1&&tab==='upload')));
+  document.getElementById('imgtab-url').classList.toggle('active', tab==='url');
+  document.getElementById('imgtab-upload').classList.toggle('active', tab==='upload');
 }
 
-function insertImage() {
-  const src = pendingImgData || document.getElementById('imgUrl').value.trim();
+function insertImageMd() {
+  const src = pendingImg || document.getElementById('imgUrl').value.trim();
   if (!src) { toast('УКАЖИТЕ ИСТОЧНИК ИЗОБРАЖЕНИЯ'); return; }
+  const caption = document.getElementById('imgCaption').value.trim() || 'Материал объекта';
+  closeModal('imageOverlay');
+  insertTpl(`\n![${caption}](${src})\n`);
+  toast('ИЗОБРАЖЕНИЕ ВСТАВЛЕНО');
+}
+
+// ═══════════════════════════════════════════
+// SAVE
+// ═══════════════════════════════════════════
+function saveCurrent() {
   const entity = getEntity(activeId);
   if (!entity) return;
-  if (!entity.blocks) entity.blocks = [];
-  entity.blocks.push({ type: 'image', src, align: document.getElementById('imgAlign').value, size: 'medium', caption: '' });
-  closeModal('imageOverlay');
-  renderBlocks(entity);
-  toast('МАТЕРИАЛ ПРИКРЕПЛЁН');
+  const ta = document.getElementById('mdTa');
+  if (ta) entity.markdown = ta.value;
+  const ni = document.querySelector('.dh-name-input');
+  if (ni) entity.name = ni.value;
 }
 
-// ════════════════════════════════════════════════════════════════
-// SAVE
-// ════════════════════════════════════════════════════════════════
 function saveAll() {
-  saveCurrentEntity();
-  localStorage.setItem('scp_entities', JSON.stringify(entities));
+  saveCurrent();
+  localStorage.setItem('scp_db', JSON.stringify(entities));
   toast('ДАННЫЕ СОХРАНЕНЫ В БАЗУ');
 }
 
 setInterval(() => { if (activeId && isAdmin) saveAll(); }, 30000);
 
-document.addEventListener('keydown', (e) => {
-  if ((e.ctrlKey || e.metaKey) && e.key === 's') { e.preventDefault(); if (isAdmin) saveAll(); }
+document.addEventListener('keydown', ev => {
+  if (document.getElementById('authOverlay').classList.contains('open')) return;
+  if ((ev.ctrlKey || ev.metaKey) && ev.key === 's') { ev.preventDefault(); if (isAdmin) saveAll(); }
 });
 
-// ════════════════════════════════════════════════════════════════
+// ═══════════════════════════════════════════
 // MODALS
-// ════════════════════════════════════════════════════════════════
+// ═══════════════════════════════════════════
 function openOverlay(id) { document.getElementById(id).classList.add('open'); }
 function closeModal(id) { document.getElementById(id).classList.remove('open'); }
+document.querySelectorAll('.overlay').forEach(o => o.addEventListener('click', ev => { if (ev.target===o) o.classList.remove('open'); }));
 
-document.querySelectorAll('.overlay').forEach(o => {
-  o.addEventListener('click', (e) => { if (e.target === o) o.classList.remove('open'); });
-});
-
-// ════════════════════════════════════════════════════════════════
+// ═══════════════════════════════════════════
 // UTILS
-// ════════════════════════════════════════════════════════════════
-function esc(s) {
-  return (s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
-}
-
+// ═══════════════════════════════════════════
+function esc(s) { return (s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;'); }
 function toast(msg) {
   const t = document.getElementById('toast');
   t.textContent = '// ' + msg;
