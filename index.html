@@ -1,10 +1,9 @@
 <!DOCTYPE html>
-<html lang="ru">
-<head>
+<html lang="ru"><head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>SCP FOUNDATION — ОБЪЕКТНАЯ БАЗА ДАННЫХ</title>
-<link href="https://fonts.googleapis.com/css2?family=Special+Elite&family=Share+Tech+Mono&family=Courier+Prime:ital,wght@0,400;0,700;1,400&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Special+Elite&amp;family=Share+Tech+Mono&amp;family=Courier+Prime:ital,wght@0,400;0,700;1,400&amp;display=swap" rel="stylesheet">
 <script src="https://cdnjs.cloudflare.com/ajax/libs/marked/9.1.6/marked.min.js"></script>
 <style>
 :root {
@@ -228,7 +227,7 @@ header{height:56px;background:var(--bg2);border-bottom:2px solid var(--border);d
 <body>
 
 <!-- BOOT -->
-<div id="bootScreen">
+<div id="bootScreen" style="display: none;">
   <div class="boot-logo">☣</div>
   <div class="boot-line">SCP FOUNDATION — SECURE CONTAIN PROTECT</div>
   <div class="boot-line" style="margin:8px 0;color:#1a1a14;">——————————————————————————————</div>
@@ -244,11 +243,11 @@ header{height:56px;background:var(--bg2);border-bottom:2px solid var(--border);d
 <header>
   <div class="scp-logo">
     <svg width="32" height="32" viewBox="0 0 100 100" fill="none">
-      <circle cx="50" cy="50" r="45" stroke="#cc1111" stroke-width="3"/>
-      <circle cx="50" cy="50" r="20" stroke="#cc1111" stroke-width="2"/>
-      <path d="M50 5 A45 45 0 0 1 89.1 72.5 L64 57.5 A20 20 0 0 0 50 30 Z" fill="#cc1111" opacity=".8"/>
-      <path d="M89.1 72.5 A45 45 0 0 1 10.9 72.5 L36 57.5 A20 20 0 0 0 64 57.5 Z" fill="#cc1111" opacity=".8"/>
-      <path d="M10.9 72.5 A45 45 0 0 1 50 5 L50 30 A20 20 0 0 0 36 57.5 Z" fill="#cc1111" opacity=".8"/>
+      <circle cx="50" cy="50" r="45" stroke="#cc1111" stroke-width="3"></circle>
+      <circle cx="50" cy="50" r="20" stroke="#cc1111" stroke-width="2"></circle>
+      <path d="M50 5 A45 45 0 0 1 89.1 72.5 L64 57.5 A20 20 0 0 0 50 30 Z" fill="#cc1111" opacity=".8"></path>
+      <path d="M89.1 72.5 A45 45 0 0 1 10.9 72.5 L36 57.5 A20 20 0 0 0 64 57.5 Z" fill="#cc1111" opacity=".8"></path>
+      <path d="M10.9 72.5 A45 45 0 0 1 50 5 L50 30 A20 20 0 0 0 36 57.5 Z" fill="#cc1111" opacity=".8"></path>
     </svg>
     SCP FOUNDATION
   </div>
@@ -257,17 +256,10 @@ header{height:56px;background:var(--bg2);border-bottom:2px solid var(--border);d
     <span style="color:var(--border2);">CLEARANCE REQUIRED /// UNAUTHORIZED ACCESS PROHIBITED</span>
   </div>
   <div class="header-right">
-    <div class="access-badge ro" id="syncBadge" style="cursor:pointer;" onclick="openCloudSetup()" title="Настройки облачной синхронизации">● ЛОКАЛЬНО</div>
-    <button class="hbtn" onclick="openCloudSetup()" title="Настроить облачный сервер">☁ ОБЛАКО</button>
-    <button class="hbtn" onclick="exportDB()" title="Скачать базу как .json файл">⬇ ЭКСПОРТ</button>
-    <label class="hbtn" title="Загрузить базу из .json файла" style="cursor:pointer;">
-      ⬆ ИМПОРТ
-      <input type="file" id="importFile" accept=".json" onchange="importDB(event)" style="display:none;">
-    </label>
-    <div style="width:1px;height:20px;background:var(--border2);margin:0 4px;"></div>
-    <div class="access-badge ro" id="accessBadge">● ТОЛЬКО ЧТЕНИЕ</div>
-    <button class="hbtn" onclick="openAuthModal()" id="authBtn">⬡ ДОСТУП ПЕРСОНАЛА</button>
-    <button class="hbtn danger" onclick="logout()" id="logoutBtn" style="display:none;">⬡ ВЫХОД</button>
+    <div class="access-badge ro" id="syncBadge" style="color: rgb(74, 154, 204); border-color: rgb(34, 68, 102);">☁ ОНЛАЙН</div>
+    <div class="access-badge adm" id="accessBadge">● АДМИНИСТРАТОР О5</div>
+    <button class="hbtn" onclick="openAuthModal()" id="authBtn" style="display: none;">⬡ ДОСТУП ПЕРСОНАЛА</button>
+    <button class="hbtn danger" onclick="logout()" id="logoutBtn" style="display: inline-flex;">⬡ ВЫХОД</button>
   </div>
 </header>
 
@@ -278,21 +270,83 @@ header{height:56px;background:var(--bg2);border-bottom:2px solid var(--border);d
       <div class="sb-label">ОБЪЕКТЫ БАЗЫ</div>
       <input type="text" class="sb-search" placeholder="ПОИСК ОБЪЕКТА..." oninput="filterEntities(this.value)">
     </div>
-    <div class="entity-list" id="entityList"></div>
+    <div class="entity-list" id="entityList"><div class="ent active">
+      <div class="ent-num">SCP-8344</div>
+      <div class="ent-name">MiХАЛЫЧ/ЗАЛYПЫЧ</div>
+      <span class="tbadge EUCLID">EUCLID</span>
+      
+    </div></div>
     <div class="sb-foot">
-      <button class="sbtn danger" id="addEntityBtn" onclick="openNewEntityModal()" style="display:none;">⊕ СОЗДАТЬ ОБЪЕКТ</button>
-      <div id="roNote" style="font-family:var(--mono);font-size:9px;color:var(--text-dim);letter-spacing:1px;text-align:center;line-height:1.6;">УРОВЕНЬ ДОСТУПА: ТОЛЬКО ЧТЕНИЕ<br>ДЛЯ РЕДАКТИРОВАНИЯ — АВТОРИЗУЙТЕСЬ</div>
+      <button class="sbtn danger" id="addEntityBtn" onclick="openNewEntityModal()" style="display: flex;">⊕ СОЗДАТЬ ОБЪЕКТ</button>
+      <button class="sbtn" id="cloudBtn" onclick="openCloudSetup()" style="display: flex; margin-top: 6px; border-color: var(--amber-dim); color: var(--amber);">☁ НАСТРОЙКИ ОБЛАКА</button>
+      <button class="sbtn" id="shareBtn" onclick="downloadForFriend()" style="display: flex; margin-top: 4px; border-color: rgb(34, 68, 102); color: rgb(74, 154, 204);">⬇ СКАЧАТЬ ДЛЯ ДРУГА</button>
+      <div id="roNote" style="font-family: var(--mono); font-size: 9px; color: var(--text-dim); letter-spacing: 1px; text-align: center; line-height: 1.6; display: none;">УРОВЕНЬ ДОСТУПА: ТОЛЬКО ЧТЕНИЕ<br>ДЛЯ РЕДАКТИРОВАНИЯ — АВТОРИЗУЙТЕСЬ</div>
     </div>
   </aside>
 
   <!-- MAIN -->
-  <div class="main" id="mainContent">
-    <div class="empty-state">
-      <div class="sym">☣</div>
-      <h2>ОБЪЕКТ НЕ ВЫБРАН</h2>
-      <p>ВЫБЕРИТЕ ОБЪЕКТ ИЗ СПИСКА СЛЕВА<br><br>ДЛЯ СОЗДАНИЯ ОБЪЕКТОВ ТРЕБУЕТСЯ АВТОРИЗАЦИЯ УРОВНЯ О5</p>
+  <div class="main" id="mainContent"><div class="doc-view"><div class="ro-banner">⚠ РЕЖИМ ТОЛЬКО ДЛЯ ЧТЕНИЯ // РЕДАКТИРОВАНИЕ ЗАПРЕЩЕНО // НЕСАНКЦИОНИРОВАННОЕ ИЗМЕНЕНИЕ ДАННЫХ ЯВЛЯЕТСЯ НАРУШЕНИЕМ ПРОТОКОЛА</div><div class="doc-header">
+  <div class="doc-id-corner">DOC #8344-DRYR</div>
+  <div class="dh-top">
+    <div class="dh-logo">
+      <svg width="50" height="50" viewBox="0 0 100 100" fill="none">
+        <circle cx="50" cy="50" r="45" stroke="#cc1111" stroke-width="3"></circle>
+        <circle cx="50" cy="50" r="20" stroke="#cc1111" stroke-width="2"></circle>
+        <path d="M50 5 A45 45 0 0 1 89.1 72.5 L64 57.5 A20 20 0 0 0 50 30 Z" fill="#cc1111" opacity=".8"></path>
+        <path d="M89.1 72.5 A45 45 0 0 1 10.9 72.5 L36 57.5 A20 20 0 0 0 64 57.5 Z" fill="#cc1111" opacity=".8"></path>
+        <path d="M10.9 72.5 A45 45 0 0 1 50 5 L50 30 A20 20 0 0 0 36 57.5 Z" fill="#cc1111" opacity=".8"></path>
+      </svg>
+    </div>
+    <div class="dh-info">
+      <div class="dh-num">ОБЪЕКТ №: SCP-8344</div>
+      <div class="dh-name">MiХАЛЫЧ/ЗАЛYПЫЧ</div>
+    </div>
+    <div class="dh-stamps">
+      <div class="stamp cl">ЗАСЕКРЕЧЕНО</div>
+      <div class="stamp re">ОГРАНИЧЕННЫЙ ДОСТУП</div>
     </div>
   </div>
+  <div class="dh-meta">
+    <div class="dh-cell">
+      <div class="dh-cell-label">КЛАСС УГРОЗЫ</div>
+      <div class="dh-cell-val">
+        <span class="tbadge EUCLID">EUCLID</span>
+      </div>
+    </div>
+    <div class="dh-cell">
+      <div class="dh-cell-label">ИССЛЕДОВАТЕЛЬ</div>
+      <div class="dh-cell-val">желтышериф</div>
+    </div>
+    <div class="dh-cell">
+      <div class="dh-cell-label">МЕСТО СОДЕРЖАНИЯ</div>
+      <div class="dh-cell-val">школа 523</div>
+    </div>
+    <div class="dh-cell">
+      <div class="dh-cell-label">СТАТУС</div>
+      <div class="dh-cell-val" style="color:var(--green);">ПОД КОНТРОЛЕМ</div>
+    </div>
+  </div></div><div class="panes"><div class="pane-full"><div class="md-out"><h1>Процедуры содержания</h1>
+<ul>
+<li>Объект SCP-8344 должен содержаться в мес</li>
+</ul>
+<h2>Описание</h2>
+<p>SCP-8869 представляет собой по виду обычного рабочего в школе но это не так. может в школе он и простой может забавный мужик но то что он скрывает... его прозвище "залупыч" которое у него уже как второе имя появилось не просто так. он имеет широкий спектр своих способностей и многие из них нормально не изученны. данный объект умеет грамотно использовать свои залупы. также по рассказам одного очевидца на спине залYпыча есть большое колличество сисек и самое страшное в них то что вместо сосков на них залупы.</p>
+<h2>История обнаружения</h2>
+<blockquote>
+<p>«однажды я захотел пойти в туалет на уроке вышел и пошел в него там я встретил необычайно толстого мужика который толи срал то ли дрочил и тогда я решил чуть чуть посмеяться хихикнул и на меня набросился он ЗАЛУПЫЧ» история одного из пострадавших.</p>
+</blockquote>
+<h2>Способности</h2>
+<ul>
+<li>Выпускать залуп шпионов. залупа на паучьих ножках с камерой.</li>
+<li>Выпускать залупа дронов. </li>
+<li>Выпускать ядовитых залупных медуз.</li>
+<li>Использовать одну из своих залуп в качестве оружия</li>
+<li>Может ударить по твоей залупе и отправить ее в другой город, а в будущем она станет шпионом.</li>
+</ul>
+<hr>
+<h2>Уровень секретности: ██████</h2>
+<h3>tЫ пoжaлeешь ecли встретишь zaЛyПЫЧa</h3>
+</div></div></div></div></div>
 </div>
 
 <!-- AUTH MODAL -->
@@ -301,8 +355,8 @@ header{height:56px;background:var(--bg2);border-bottom:2px solid var(--border);d
     <div class="mhd"><div class="mtitle">⬡ АВТОРИЗАЦИЯ ПЕРСОНАЛА</div><button class="mclose" onclick="closeModal('authOverlay')">✕</button></div>
     <div class="mbody">
       <div style="font-family:var(--mono);font-size:10px;color:var(--text-dim);letter-spacing:2px;text-align:center;margin-bottom:18px;line-height:1.8;">ВВЕДИТЕ КОД ДОСТУПА<br><span style="color:var(--red-dim);">НЕСАНКЦИОНИРОВАННЫЙ ДОСТУП ФИКСИРУЕТСЯ</span></div>
-      <div class="pass-disp" id="passDisplay"><span class="blink" style="color:var(--green-dim);">█</span></div>
-      <div class="keypad" id="keypad"></div>
+      <div class="pass-disp" id="passDisplay"><span class="blink" style="color:var(--green-dim)">█</span></div>
+      <div class="keypad" id="keypad"><button class="mbtn c" style="font-size: 18px; padding: 12px; letter-spacing: 0px; font-family: var(--mono);">7</button><button class="mbtn c" style="font-size: 18px; padding: 12px; letter-spacing: 0px; font-family: var(--mono);">8</button><button class="mbtn c" style="font-size: 18px; padding: 12px; letter-spacing: 0px; font-family: var(--mono);">9</button><button class="mbtn c" style="font-size: 18px; padding: 12px; letter-spacing: 0px; font-family: var(--mono);">4</button><button class="mbtn c" style="font-size: 18px; padding: 12px; letter-spacing: 0px; font-family: var(--mono);">5</button><button class="mbtn c" style="font-size: 18px; padding: 12px; letter-spacing: 0px; font-family: var(--mono);">6</button><button class="mbtn c" style="font-size: 18px; padding: 12px; letter-spacing: 0px; font-family: var(--mono);">1</button><button class="mbtn c" style="font-size: 18px; padding: 12px; letter-spacing: 0px; font-family: var(--mono);">2</button><button class="mbtn c" style="font-size: 18px; padding: 12px; letter-spacing: 0px; font-family: var(--mono);">3</button><button class="mbtn c" style="font-size: 18px; padding: 12px; letter-spacing: 0px; font-family: var(--mono);">⌫</button><button class="mbtn c" style="font-size: 18px; padding: 12px; letter-spacing: 0px; font-family: var(--mono);">0</button><button class="mbtn c" style="font-size: 18px; padding: 12px; letter-spacing: 0px; font-family: var(--mono);">↵</button><button class="mbtn c" style="font-size: 18px; padding: 12px; letter-spacing: 0px; font-family: var(--mono);">7</button><button class="mbtn c" style="font-size: 18px; padding: 12px; letter-spacing: 0px; font-family: var(--mono);">8</button><button class="mbtn c" style="font-size: 18px; padding: 12px; letter-spacing: 0px; font-family: var(--mono);">9</button><button class="mbtn c" style="font-size: 18px; padding: 12px; letter-spacing: 0px; font-family: var(--mono);">4</button><button class="mbtn c" style="font-size: 18px; padding: 12px; letter-spacing: 0px; font-family: var(--mono);">5</button><button class="mbtn c" style="font-size: 18px; padding: 12px; letter-spacing: 0px; font-family: var(--mono);">6</button><button class="mbtn c" style="font-size: 18px; padding: 12px; letter-spacing: 0px; font-family: var(--mono);">1</button><button class="mbtn c" style="font-size: 18px; padding: 12px; letter-spacing: 0px; font-family: var(--mono);">2</button><button class="mbtn c" style="font-size: 18px; padding: 12px; letter-spacing: 0px; font-family: var(--mono);">3</button><button class="mbtn c" style="font-size: 18px; padding: 12px; letter-spacing: 0px; font-family: var(--mono);">⌫</button><button class="mbtn c" style="font-size: 18px; padding: 12px; letter-spacing: 0px; font-family: var(--mono);">0</button><button class="mbtn c" style="font-size: 18px; padding: 12px; letter-spacing: 0px; font-family: var(--mono);">↵</button><button class="mbtn c" style="font-size: 18px; padding: 12px; letter-spacing: 0px; font-family: var(--mono);">7</button><button class="mbtn c" style="font-size: 18px; padding: 12px; letter-spacing: 0px; font-family: var(--mono);">8</button><button class="mbtn c" style="font-size: 18px; padding: 12px; letter-spacing: 0px; font-family: var(--mono);">9</button><button class="mbtn c" style="font-size: 18px; padding: 12px; letter-spacing: 0px; font-family: var(--mono);">4</button><button class="mbtn c" style="font-size: 18px; padding: 12px; letter-spacing: 0px; font-family: var(--mono);">5</button><button class="mbtn c" style="font-size: 18px; padding: 12px; letter-spacing: 0px; font-family: var(--mono);">6</button><button class="mbtn c" style="font-size: 18px; padding: 12px; letter-spacing: 0px; font-family: var(--mono);">1</button><button class="mbtn c" style="font-size: 18px; padding: 12px; letter-spacing: 0px; font-family: var(--mono);">2</button><button class="mbtn c" style="font-size: 18px; padding: 12px; letter-spacing: 0px; font-family: var(--mono);">3</button><button class="mbtn c" style="font-size: 18px; padding: 12px; letter-spacing: 0px; font-family: var(--mono);">⌫</button><button class="mbtn c" style="font-size: 18px; padding: 12px; letter-spacing: 0px; font-family: var(--mono);">0</button><button class="mbtn c" style="font-size: 18px; padding: 12px; letter-spacing: 0px; font-family: var(--mono);">↵</button><button class="mbtn c" style="font-size: 18px; padding: 12px; letter-spacing: 0px; font-family: var(--mono);">7</button><button class="mbtn c" style="font-size: 18px; padding: 12px; letter-spacing: 0px; font-family: var(--mono);">8</button><button class="mbtn c" style="font-size: 18px; padding: 12px; letter-spacing: 0px; font-family: var(--mono);">9</button><button class="mbtn c" style="font-size: 18px; padding: 12px; letter-spacing: 0px; font-family: var(--mono);">4</button><button class="mbtn c" style="font-size: 18px; padding: 12px; letter-spacing: 0px; font-family: var(--mono);">5</button><button class="mbtn c" style="font-size: 18px; padding: 12px; letter-spacing: 0px; font-family: var(--mono);">6</button><button class="mbtn c" style="font-size: 18px; padding: 12px; letter-spacing: 0px; font-family: var(--mono);">1</button><button class="mbtn c" style="font-size: 18px; padding: 12px; letter-spacing: 0px; font-family: var(--mono);">2</button><button class="mbtn c" style="font-size: 18px; padding: 12px; letter-spacing: 0px; font-family: var(--mono);">3</button><button class="mbtn c" style="font-size: 18px; padding: 12px; letter-spacing: 0px; font-family: var(--mono);">⌫</button><button class="mbtn c" style="font-size: 18px; padding: 12px; letter-spacing: 0px; font-family: var(--mono);">0</button><button class="mbtn c" style="font-size: 18px; padding: 12px; letter-spacing: 0px; font-family: var(--mono);">↵</button></div>
       <div class="pass-err" id="passError"></div>
     </div>
     <div class="mfoot">
@@ -322,7 +376,7 @@ header{height:56px;background:var(--bg2);border-bottom:2px solid var(--border);d
         <label class="flabel">КЛАСС УГРОЗЫ</label>
         <select class="fsel" id="newThreat">
           <option value="SAFE">SAFE — БЕЗОПАСНЫЙ</option>
-          <option value="EUCLID" selected>EUCLID — ЕВКЛИД</option>
+          <option value="EUCLID" selected="">EUCLID — ЕВКЛИД</option>
           <option value="KETER">KETER — КЕТЕР ⚠</option>
           <option value="THAUMIEL">THAUMIEL — ТАУМИЭЛЬ</option>
           <option value="NEUTRALIZED">NEUTRALIZED — НЕЙТРАЛИЗОВАН</option>
@@ -367,48 +421,43 @@ header{height:56px;background:var(--bg2);border-bottom:2px solid var(--border);d
   </div>
 </div>
 
-<!-- CLOUD SETUP MODAL -->
+<!-- CLOUD MODAL (только для админа) -->
 <div class="overlay" id="cloudOverlay">
-  <div class="modal" style="width:500px;">
+  <div class="modal" style="width:480px;">
     <div class="mhd">
-      <div class="mtitle">☁ НАСТРОЙКА ОБЛАЧНОГО СЕРВЕРА</div>
+      <div class="mtitle">☁ ПОДКЛЮЧЕНИЕ ОБЛАКА</div>
       <button class="mclose" onclick="closeModal('cloudOverlay')">✕</button>
     </div>
     <div class="mbody">
-      <div style="font-family:var(--mono);font-size:11px;color:var(--text-dim);letter-spacing:1px;line-height:1.9;margin-bottom:20px;border-left:3px solid var(--red2);padding-left:12px;">
-        Статьи хранятся на сервере <b style="color:var(--text);">jsonbin.io</b> — бесплатно, без лимитов на чтение.<br>
-        Твой друг открывает тот же HTML файл — и видит все статьи.<br><br>
-        <b style="color:var(--amber);">Как настроить:</b><br>
-        1. Зайди на <a href="https://jsonbin.io" target="_blank" style="color:var(--amber);">jsonbin.io</a> → бесплатная регистрация<br>
-        2. Профиль → API Keys → скопируй <b style="color:var(--text);">Master Key</b><br>
-        3. Вставь ключ ниже и нажми «ПОДКЛЮЧИТЬ»<br>
-        4. ID корзины создастся автоматически при первом сохранении
+      <div style="font-family:var(--mono);font-size:11px;line-height:1.9;color:var(--text-dim);margin-bottom:18px;border-left:3px solid var(--red2);padding-left:12px;">
+        Статьи будут храниться на <b style="color:var(--text);">jsonbin.io</b> — бесплатно.<br>
+        После настройки нажми <b style="color:var(--amber);">⬇ СКАЧАТЬ ВЕРСИЮ ДЛЯ ДРУГА</b><br>
+        — он просто откроет файл и увидит все статьи без каких-либо действий.<br><br>
+        <b style="color:var(--text-bright);">Как получить ключ:</b><br>
+        1. Открой <a href="https://jsonbin.io" target="_blank" style="color:var(--amber);">jsonbin.io</a> → Sign Up (бесплатно)<br>
+        2. Перейди в профиль → <b>API Keys</b> → скопируй <b>Master Key</b>
       </div>
       <div class="frow">
-        <label class="flabel">API КЛЮЧ (Master Key с jsonbin.io)</label>
+        <label class="flabel">API MASTER KEY с jsonbin.io</label>
         <input type="text" class="finput" id="cloudKeyInput" placeholder="$2a$10$...">
       </div>
-      <div class="frow">
-        <label class="flabel">ID КОРЗИНЫ (заполнится автоматически)</label>
-        <input type="text" class="finput" id="cloudBinInput" placeholder="64abc123... (необязательно, для существующей корзины)">
-      </div>
-      <div id="cloudStatusInfo" style="font-family:var(--mono);font-size:10px;color:var(--text-dim);letter-spacing:1px;margin-top:4px;"></div>
+      <div id="cloudBinDisplay" style="font-family: var(--mono); font-size: 11px; color: var(--amber); letter-spacing: 1px; margin-top: 4px; padding: 6px; background: var(--bg2); border: 1px solid var(--border);">Ещё не создан — сохрани первую статью</div>
     </div>
     <div class="mfoot">
-      <button class="mbtn c" onclick="clearCloudConfig()">ОТКЛЮЧИТЬ ОБЛАКО</button>
       <button class="mbtn c" onclick="closeModal('cloudOverlay')">ОТМЕНА</button>
-      <button class="mbtn ok" onclick="saveCloudConfig()">ПОДКЛЮЧИТЬ ☁</button>
+      <button class="mbtn ok" onclick="applyCloudKey()">ПОДКЛЮЧИТЬ ☁</button>
     </div>
   </div>
 </div>
 
-<div class="toast" id="toast"></div>
+<div class="toast" id="toast">// ДОСТУП РАЗРЕШЁН // УРОВЕНЬ О5</div>
 
 <script>
 // ═══════════════════════════════════════════
-// КОНФИГ ОБЛАКА — заполни один раз
+// ОБЛАКО — эти две строки заполняются автоматически
 // ═══════════════════════════════════════════
-const JSONBIN_KEY = '$2a$10$8xQx7Tq3cW4OCo58TZMbI.bWlY3eHmnC7A0bjouawrj8W/guIlpBq';
+const BAKED_KEY = '$2a$10$8xQx7Tq3cW4OCo58TZMbI.bWlY3eHmnC7A0bjouawrj8W/guIlpBq';      // ← вшитый ключ (для версии «другу»)
+const BAKED_BIN = '69975e05ae596e708f38108f';      // ← вшитый bin id (для версии «другу»)
 const ADMIN_PASS = 'root';
 
 marked.setOptions({ breaks: true, gfm: true });
@@ -419,19 +468,24 @@ let activeId = null;
 let passBuffer = '';
 let pendingImg = null;
 let scpBase = 7000 + Math.floor(Math.random() * 2000);
-let cloudBinId = 
+
+// Ключ: сначала вшитый, потом из localStorage
+let JB_KEY = BAKED_KEY || localStorage.getItem('scp_jbkey') || '';
+let JB_BIN = BAKED_BIN || localStorage.getItem('scp_bin_id') || '';
 
 window.addEventListener('load', () => {
   buildKeypad();
-  if (JSONBIN_KEY && cloudBinId) {
-    cloudLoad();
+  if (JB_KEY && JB_BIN) {
     updateSyncBadge('syncing');
+    cloudLoad().then(() => {
+      setTimeout(() => { document.getElementById('bootScreen').style.display = 'none'; }, 3100);
+    });
   } else {
     renderList();
     if (entities.length) selectEntity(entities[0].id);
-    updateSyncBadge('local');
+    updateSyncBadge(JB_KEY ? 'key_only' : 'local');
+    setTimeout(() => { document.getElementById('bootScreen').style.display = 'none'; }, 3100);
   }
-  setTimeout(() => { document.getElementById('bootScreen').style.display = 'none'; }, 3100);
 });
 
 // ═══════════════════════════════════════════
@@ -479,7 +533,9 @@ function attemptAuth() {
   document.getElementById('authBtn').style.display = 'none';
   document.getElementById('logoutBtn').style.display = 'inline-flex';
   document.getElementById('addEntityBtn').style.display = 'flex';
+  document.getElementById('cloudBtn').style.display = 'flex';
   document.getElementById('roNote').style.display = 'none';
+  if (JB_BIN) { document.getElementById('shareBtn').style.display = 'flex'; showShareBtn(); }
   toast('ДОСТУП РАЗРЕШЁН // УРОВЕНЬ О5');
   if (activeId) renderDoc();
 }
@@ -491,6 +547,10 @@ function logout() {
   document.getElementById('authBtn').style.display = 'inline-flex';
   document.getElementById('logoutBtn').style.display = 'none';
   document.getElementById('addEntityBtn').style.display = 'none';
+  document.getElementById('cloudBtn').style.display = 'none';
+  document.getElementById('shareBtn').style.display = 'none';
+  const sb = document.getElementById('shareBtnWrap');
+  if (sb) sb.remove();
   document.getElementById('roNote').style.display = 'block';
   toast('СЕССИЯ ЗАВЕРШЕНА');
   if (activeId) renderDoc();
@@ -851,52 +911,46 @@ function saveCurrent() {
 function saveAll() {
   saveCurrent();
   localStorage.setItem('scp_db', JSON.stringify(entities));
-  if (JSONBIN_KEY && cloudBinId) {
+  if (JB_KEY && JB_BIN) {
     cloudSave();
+  } else if (JB_KEY) {
+    // ключ есть, но bin ещё не создан — создаём
+    cloudCreate();
   } else {
     toast('ДАННЫЕ СОХРАНЕНЫ ЛОКАЛЬНО');
   }
 }
 
-// ─── CLOUD: загрузить данные ───
+// ─── Загрузить из облака ───
 async function cloudLoad() {
-  updateSyncBadge('syncing');
   try {
-    const r = await fetch(`https://api.jsonbin.io/v3/b/${cloudBinId}/latest`, {
-      headers: { 'X-Master-Key': JSONBIN_KEY, 'X-Bin-Meta': 'false' }
+    const r = await fetch(`https://api.jsonbin.io/v3/b/${JB_BIN}/latest`, {
+      headers: { 'X-Master-Key': JB_KEY, 'X-Bin-Meta': 'false' }
     });
     if (!r.ok) throw new Error(r.status);
     const data = await r.json();
-    if (Array.isArray(data)) {
+    if (Array.isArray(data) && data.length > 0) {
       entities = data;
       localStorage.setItem('scp_db', JSON.stringify(entities));
     }
     updateSyncBadge('cloud');
   } catch(e) {
     updateSyncBadge('error');
-    toast('ОШИБКА ЗАГРУЗКИ С СЕРВЕРА: ' + e.message);
+    toast('ОШИБКА ЗАГРУЗКИ: ' + e.message);
   }
   renderList();
   if (entities.length) selectEntity(entities[0].id);
 }
 
-// ─── CLOUD: сохранить данные ───
-async function cloudSave() {
+// ─── Создать bin при первом сохранении ───
+async function cloudCreate() {
   updateSyncBadge('syncing');
   try {
-    let url, method;
-    if (cloudBinId) {
-      url = `https://api.jsonbin.io/v3/b/${cloudBinId}`;
-      method = 'PUT';
-    } else {
-      url = 'https://api.jsonbin.io/v3/b';
-      method = 'POST';
-    }
-    const r = await fetch(url, {
-      method,
+    const r = await fetch('https://api.jsonbin.io/v3/b', {
+      method: 'POST',
       headers: {
         'Content-Type': 'application/json',
-        'X-Master-Key': JSONBIN_KEY,
+        'X-Master-Key': JB_KEY,
         'X-Bin-Name': 'scp-foundation-db',
         'X-Bin-Private': 'false'
       },
@@ -904,103 +958,115 @@ async function cloudSave() {
     });
     if (!r.ok) throw new Error(r.status);
     const data = await r.json();
-    if (!cloudBinId) {
-      cloudBinId = data.metadata.id;
-      localStorage.setItem('scp_bin_id', cloudBinId);
-      toast('☁ КОРЗИНА СОЗДАНА! ID: ' + cloudBinId);
-    } else {
-      toast('☁ СИНХРОНИЗИРОВАНО С СЕРВЕРОМ');
-    }
+    JB_BIN = data.metadata.id;
+    localStorage.setItem('scp_bin_id', JB_BIN);
     localStorage.setItem('scp_db', JSON.stringify(entities));
     updateSyncBadge('cloud');
+    toast('☁ БАЗА СОЗДАНА НА СЕРВЕРЕ!');
+    // Показываем кнопку "скачать для друга"
+    showShareBtn();
   } catch(e) {
     updateSyncBadge('error');
-    toast('ОШИБКА СОХРАНЕНИЯ НА СЕРВЕР: ' + e.message);
+    toast('ОШИБКА СОЗДАНИЯ БАЗЫ: ' + e.message);
   }
 }
 
-// ─── CLOUD: первичная настройка ───
-function openCloudSetup() {
-  openOverlay('cloudOverlay');
-  document.getElementById('cloudKeyInput').value = localStorage.getItem('scp_jbkey') || '';
-  document.getElementById('cloudBinInput').value = localStorage.getItem('scp_bin_id') || '';
-  const binId = localStorage.getItem('scp_bin_id');
-  const key = localStorage.getItem('scp_jbkey');
-  const info = document.getElementById('cloudStatusInfo');
-  if (key && binId) {
-    info.innerHTML = `<span style="color:var(--green);">● ПОДКЛЮЧЕНО</span> — ID корзины: <span style="color:var(--amber);">${binId}</span><br>Ссылка для чтения: <a href="https://api.jsonbin.io/v3/b/${binId}/latest" target="_blank" style="color:var(--amber);word-break:break-all;">jsonbin.io/v3/b/${binId}</a>`;
-  } else if (key) {
-    info.innerHTML = '<span style="color:var(--amber);">⚠ Ключ есть, но корзина ещё не создана — сохрани статью.</span>';
-  } else {
-    info.innerHTML = '<span style="color:var(--text-dim);">⬡ Облако не настроено — статьи хранятся только локально.</span>';
+// ─── Сохранить в существующий bin ───
+async function cloudSave() {
+  updateSyncBadge('syncing');
+  try {
+    const r = await fetch(`https://api.jsonbin.io/v3/b/${JB_BIN}`, {
+      method: 'PUT',
+      headers: {
+        'Content-Type': 'application/json',
+        'X-Master-Key': JB_KEY
+      },
+      body: JSON.stringify(entities)
+    });
+    if (!r.ok) throw new Error(r.status);
+    localStorage.setItem('scp_db', JSON.stringify(entities));
+    updateSyncBadge('cloud');
+    toast('☁ СИНХРОНИЗИРОВАНО С СЕРВЕРОМ');
+  } catch(e) {
+    updateSyncBadge('error');
+    toast('ОШИБКА СИНХРОНИЗАЦИИ: ' + e.message);
   }
 }
 
-function saveCloudConfig() {
-  const key = document.getElementById('cloudKeyInput').value.trim();
-  const bin = document.getElementById('cloudBinInput').value.trim();
-  if (!key) { toast('ВВЕДИТЕ API КЛЮЧ'); return; }
-  localStorage.setItem('scp_jbkey', key);
-  if (bin) { localStorage.setItem('scp_bin_id', bin); cloudBinId = bin; }
-  closeModal('cloudOverlay');
-  location.reload(); // перезагружаем с новым ключом
-}
-
-function clearCloudConfig() {
-  if (!confirm('Отвязать облако? Данные останутся локально.')) return;
-  localStorage.removeItem('scp_jbkey');
-  localStorage.removeItem('scp_bin_id');
-  toast('ОБЛАКО ОТКЛЮЧЕНО');
-  closeModal('cloudOverlay');
-  location.reload();
-}
-
-// ─── экспорт в файл ───
-function exportDB() {
+// ─── Скачать версию для друга (с вшитыми ключами) ───
+function downloadForFriend() {
   saveCurrent();
-  const blob = new Blob([JSON.stringify(entities, null, 2)], { type: 'application/json' });
+  let src = document.documentElement.outerHTML;
+  src = src.replace("const BAKED_KEY = '$2a$10$8xQx7Tq3cW4OCo58TZMbI.bWlY3eHmnC7A0bjouawrj8W/guIlpBq';", `const BAKED_KEY = '${JB_KEY}';`);
+  src = src.replace("const BAKED_BIN = '69975e05ae596e708f38108f';", `const BAKED_BIN = '${JB_BIN}';`);
+  const blob = new Blob(['<!DOCTYPE html>\n' + src], { type: 'text/html;charset=utf-8' });
   const a = document.createElement('a');
   a.href = URL.createObjectURL(blob);
-  a.download = 'scp-database.json';
+  a.download = 'scp-database.html';
   a.click();
-  toast('БАЗА ЭКСПОРТИРОВАНА В ФАЙЛ');
+  toast('☁ ФАЙЛ ДЛЯ ДРУГА СКАЧАН');
 }
 
-// ─── импорт из файла ───
-function importDB(ev) {
-  const file = ev.target.files[0];
-  if (!file) return;
-  const reader = new FileReader();
-  reader.onload = e => {
-    try {
-      const data = JSON.parse(e.target.result);
-      if (!Array.isArray(data)) throw new Error('Неверный формат');
-      if (!confirm(`Импортировать ${data.length} объект(ов)? Текущие данные будут заменены.`)) return;
-      entities = data;
-      localStorage.setItem('scp_db', JSON.stringify(entities));
-      renderList();
-      if (entities.length) selectEntity(entities[0].id); else activeId = null;
-      toast('БАЗА ИМПОРТИРОВАНА: ' + data.length + ' объектов');
-    } catch(err) { toast('ОШИБКА ИМПОРТА: ' + err.message); }
-  };
-  reader.readAsText(file);
-  ev.target.value = '';
+// ─── Показать кнопку «Поделиться» после создания bin ───
+function showShareBtn() {
+  // Показываем кнопку в сайдбаре
+  const sBtn = document.getElementById('shareBtn');
+  if (sBtn && isAdmin) sBtn.style.display = 'flex';
+  // Фиксированная кнопка внизу экрана
+  if (document.getElementById('shareBtnWrap')) return;
+  if (!isAdmin) return;
+  const wrap = document.createElement('div');
+  wrap.id = 'shareBtnWrap';
+  wrap.style.cssText = 'position:fixed;bottom:20px;right:20px;z-index:200;';
+  wrap.innerHTML = `<button onclick="downloadForFriend()" style="font-family:var(--mono);font-size:11px;padding:9px 16px;background:var(--bg2);border:1px solid #4a9acc;color:#4a9acc;cursor:pointer;letter-spacing:2px;text-transform:uppercase;">⬇ СКАЧАТЬ ДЛЯ ДРУГА</button>`;
+  document.body.appendChild(wrap);
 }
 
-// ─── значок синхронизации ───
+// ─── Настройки облака (в auth модале для админа) ───
+function openCloudSetup() {
+  if (!isAdmin) return;
+  openOverlay('cloudOverlay');
+  document.getElementById('cloudKeyInput').value = JB_KEY;
+  const binEl = document.getElementById('cloudBinDisplay');
+  if (binEl) {
+    binEl.textContent = JB_BIN ? 'BIN ID: ' + JB_BIN : 'Ещё не создан — сохрани первую статью';
+    binEl.style.color = JB_BIN ? 'var(--green)' : 'var(--amber)';
+  }
+}
+
+function applyCloudKey() {
+  const key = document.getElementById('cloudKeyInput').value.trim();
+  if (!key) { toast('ВВЕДИТЕ API КЛЮЧ'); return; }
+  JB_KEY = key;
+  localStorage.setItem('scp_jbkey', key);
+  closeModal('cloudOverlay');
+  if (JB_BIN) {
+    updateSyncBadge('syncing');
+    cloudLoad();
+    toast('☁ ПОДКЛЮЧЕНО — ЗАГРУЖАЮ БАЗУ...');
+  } else {
+    updateSyncBadge('key_only');
+    toast('КЛЮЧ СОХРАНЁН — СОЗДАЙ СТАТЬЮ И СОХРАНИ (Ctrl+S)');
+  }
+}
+
+// ─── Значок статуса ───
 function updateSyncBadge(status) {
   const b = document.getElementById('syncBadge');
   if (!b) return;
-  const cfg = {
-    local:   { text:'● ЛОКАЛЬНО',    color:'var(--text-dim)',  border:'var(--border2)' },
-    cloud:   { text:'☁ ОБЛАКО',      color:'#4488cc',          border:'#224466' },
-    syncing: { text:'↻ СИНХР...',    color:'var(--amber)',      border:'var(--amber-dim)' },
-    error:   { text:'✕ ОШИБКА SYNC', color:'var(--red)',        border:'var(--red2)' },
+  const map = {
+    local:    { t:'● ЛОКАЛЬНО',      c:'var(--text-dim)',  bc:'var(--border2)' },
+    key_only: { t:'⚡ КЛЮЧ ДОБАВЛЕН', c:'var(--amber)',     bc:'var(--amber-dim)' },
+    syncing:  { t:'↻ СИНХР...',      c:'var(--amber)',     bc:'var(--amber-dim)' },
+    cloud:    { t:'☁ ОНЛАЙН',        c:'#4a9acc',          bc:'#224466' },
+    error:    { t:'✕ ОШИБКА СВЯЗИ',  c:'var(--red)',       bc:'var(--red2)' },
   };
-  const s = cfg[status] || cfg.local;
-  b.textContent = s.text;
-  b.style.color = s.color;
-  b.style.borderColor = s.border;
+  const s = map[status] || map.local;
+  b.textContent = s.t;
+  b.style.color = s.c;
+  b.style.borderColor = s.bc;
+  // Показать кнопку скачать если облако готово и мы admin
+  if (status === 'cloud' && isAdmin && JB_BIN) showShareBtn();
 }
 
 setInterval(() => { if (activeId && isAdmin) saveAll(); }, 30000);
@@ -1028,5 +1094,6 @@ function toast(msg) {
   setTimeout(() => t.classList.remove('show'), 2800);
 }
 </script>
-</body>
-</html>
+
+
+<div id="shareBtnWrap" style="position: fixed; bottom: 20px; right: 20px; z-index: 200;"><button onclick="downloadForFriend()" style="font-family:var(--mono);font-size:11px;padding:9px 16px;background:var(--bg2);border:1px solid #4a9acc;color:#4a9acc;cursor:pointer;letter-spacing:2px;text-transform:uppercase;">⬇ СКАЧАТЬ ДЛЯ ДРУГА</button></div></body></html>
